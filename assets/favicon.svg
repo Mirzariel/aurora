@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AURORA">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#051f33"/>
+      <stop offset=".55" stop-color="#08304d"/>
+      <stop offset="1" stop-color="#0e4f78"/>
+    </linearGradient>
+    <linearGradient id="rb" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f6b5a" stop-opacity=".15"/>
+      <stop offset=".6" stop-color="#2f8f6f" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#56c785"/>
+    </linearGradient>
+    <clipPath id="c"><circle cx="32" cy="32" r="31"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="64" height="64" fill="url(#sky)"/>
+    <path d="M-4 38C8 20 20 42 32 26S54 12 68 26V44C54 34 46 52 34 44S12 56-4 48Z" fill="url(#rb)" opacity=".55"/>
+    <path d="M-4 46C10 30 22 52 34 36S54 28 68 40V58C54 50 46 64 34 58S12 66-4 58Z" fill="url(#rb)"/>
+    <path d="M14 20V38M22 16V36M30 14V34M38 14V32M46 16V30" stroke="#56c785" stroke-opacity=".28" stroke-width="1.4" stroke-linecap="round"/>
+    <circle cx="12" cy="12" r=".9" fill="#e8fff3"/>
+    <circle cx="50" cy="10" r=".7" fill="#e8fff3"/>
+    <circle cx="55" cy="22" r=".6" fill="#bff3d6"/>
+    <circle cx="22" cy="7" r=".6" fill="#bff3d6"/>
+  </g>
+  <circle cx="32" cy="32" r="31" fill="none" stroke="#56c785" stroke-opacity=".5" stroke-width="1"/>
+</svg>
