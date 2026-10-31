@@ -1,39 +1,29 @@
-# AURORA
+﻿# AURORA
 
-Situs showcase capstone A-06, DTETI 2026: rancangan pemantauan lampu jalan tenaga surya melalui sensor, LoRa, dan dashboard. HTML, CSS, JavaScript, dan font lokal; tanpa proses build atau pustaka aplikasi tambahan.
+Situs showcase proyek capstone AURORA (A-06, DTETI 2026): monitoring lampu jalan tenaga surya (PJU-TS) dengan komunikasi LoRa.
 
-## Pratinjau lokal
+Situs statis: HTML, CSS, dan JS biasa. Tanpa build, tanpa pustaka luar. Buka `index.html` lewat server lokal apa pun, misalnya:
 
-Jalankan server statis dari folder ini, misalnya:
-
-```powershell
-python -m http.server 8765 --bind 127.0.0.1
+```bash
+python -m http.server 8765
 ```
 
-Buka `http://127.0.0.1:8765/`. Parameter `?static` menonaktifkan adegan sticky. Tanpa JavaScript, seluruh konten dan kelima tahap perjalanan tetap tersedia. Mode pengurangan gerak, hemat data, layar sempit, atau layar yang tidak cukup tinggi memakai layout linear.
+lalu buka `http://127.0.0.1:8765/`. Tambahkan `?static` pada alamat untuk menampilkan semua bagian tanpa animasi scroll-reveal.
 
-## Arah desain
+## Memasang video YouTube
 
-Lihat [docs/DESIGN.md](docs/DESIGN.md). Cerita bergerak dari suasana pembuka, konteks PJU-TS, perjalanan informasi, hardware, dashboard, bukti, lalu tim. Hanya satu bagian memakai adegan sticky dengan scroll normal sebagai pengendali. Foto dan video stok diberi konteks yang jelas.
+Di `index.html`, cari `data-youtube-id=""` pada bagian `#video`, lalu isi dengan 11 karakter ID video (bagian setelah `v=` pada tautan). Video baru dimuat dari `youtube-nocookie.com` setelah tombol putar ditekan.
 
-## Asal aset
+## Isi folder
 
-- [docs/ASSET-PROVENANCE.md](docs/ASSET-PROVENANCE.md): aset Claude yang dipertahankan dan tambahan baru.
-- [docs/GENERATED-ASSETS.md](docs/GENERATED-ASSETS.md): ilustrasi hero, prompt, dan sumber generatif.
-- [docs/STOCK-MEDIA.md](docs/STOCK-MEDIA.md): sumber, kredit, lisensi foto dan video stok.
-- [docs/3D-ASSET-REVIEW.md](docs/3D-ASSET-REVIEW.md): asal model PCB lama, izin visualisasi, DRC, dan keterbatasan render.
-- [assets/img/CREDITS.md](assets/img/CREDITS.md): kredit gambar.
+- `assets/video/`: loop aurora hero dan ilustrasi alur paket LoRa (mp4 dan webm). Skrip pembuatnya ada di `assets/tools/`.
+- `assets/img/`: foto, render PCB, dan tangkapan layar dashboard (data simulasi). Kredit foto ada di `assets/img/CREDITS.md`.
+- `assets/fonts/`: Geist dan Geist Mono, lisensi SIL OFL 1.1.
 
-Video aurora/LoRa sebelumnya, generator, logo, dan render lama tetap tersimpan pada jalur asal. Video lama belum dikoreksi seluruh keterangannya dan tidak digunakan sebagai bukti atau animasi utama halaman. Viewer 3D yang belum selesai tidak dimuat.
+## Catatan kejujuran
 
-## Batas klaim
+Situs ini memuat label bukti (BENCH_RF, EMULASI, HOST_TEST, CLOUD_TEST, NOT RUN) dan daftar hal yang belum terbukti. Render PCB adalah visualisasi desain, bukan foto perangkat. Data demo bertanda `simulated`.
 
-Hero adalah ilustrasi generatif. Foto PJU-TS dan video stok bukan rekaman uji AURORA. Render PCB berasal dari model lama dan tidak membuktikan kesiapan fabrikasi maupun kecocokan dengan revisi papan saat ini. Dashboard memakai data simulasi. Hasil bench, emulasi, cloud test, target, dan hal yang belum diuji tetap dibedakan.
+## Kredit
 
-## Pemeriksaan
-
-```powershell
-node --check assets/js/main.js
-```
-
-Hasil pemeriksaan browser tersedia dalam [docs/VALIDATION.md](docs/VALIDATION.md). Perubahan disiapkan untuk peninjauan lokal; commit, push, dan publikasi dilakukan terpisah sesuai instruksi pengguna.
+Foto Unsplash dipakai di bawah Unsplash License (fotografer tercantum di footer situs). Font Geist © The Geist Project Authors, SIL OFL 1.1.
