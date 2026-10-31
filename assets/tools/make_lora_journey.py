@@ -1,16 +1,24 @@
-"""AURORA 'lora-journey' explainer loop (18 s, 30 fps, 1920x1080). Procedural (Pillow 2x supersample + numpy glow).
-State at t=0 equals state at t=18 (empty scene, dim pill strip), so the loop is seamless.
+"""AURORA 'lora-journey' explainer loop (21 s, 30 fps, 1920x1080), revisi 2.
+Procedural (Pillow 2x supersample + numpy glow). Kamera bergeser mengikuti paket; semua node selalu tampak
+(redup bila belum aktif) sehingga tidak pernah ada layar kosong. State pada t=21 s identik dengan t=0
+(kamera di posisi awal, semua node kembali redup, hanya tiang + pil SENSE menyala, judul sama).
+
+Aturan teks: tidak ada teks yang memudar (alpha selalu 1); pergantian judul berupa potongan cepat.
+Label kejujuran permanen: "Ilustrasi alur satu paket"; relay berlabel "Relay (emulasi)";
+momen paket hilang berlabel "Paket hilang (contoh ilustrasi)". Tidak ada angka performa.
 
 Usage: python make_lora_journey.py <workdir> [--only-frame K] [--frames N]
 """
 import sys, os, subprocess, math
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageChops
+from PIL import Image, ImageDraw, ImageFont
 from multiprocessing import Pool
 
-W, H, FPS, DUR = 1920, 1080, 30, 18
+W, H, FPS, DUR = 1920, 1080, 30, 22
 NF = FPS * DUR
-S = 2
+S = 2                      # supersample
+K = 1.4                    # skala objek
+LWB = 1.25                 # penebal garis
 TAU = 2 * math.pi
 FONT_B = r'C:\Windows\Fonts\segoeuib.ttf'
 
@@ -21,6 +29,7 @@ def hexc(h):
 
 
 def mix(a, b, t):
+    t = min(max(t, 0.0), 1.0)
     return tuple(a[i] + (b[i] - a[i]) * t for i in range(3))
 
 
@@ -29,7 +38,7 @@ def ss(a, b, x):
     return t * t * (3 - 2 * t)
 
 
-def eo(a, b, x):  # ease out cubic
+def eo(a, b, x):
     t = min(max((x - a) / (b - a), 0.0), 1.0)
     return 1 - (1 - t) ** 3
 
@@ -38,42 +47,43 @@ def rgba(c, a=1.0):
     return (int(round(c[0])), int(round(c[1])), int(round(c[2])), int(round(255 * min(max(a, 0), 1))))
 
 
-BODY = hexc('#10446a')
-BODY_D = hexc('#0a3250')
-RIM = hexc('#3aa07c')
-MINT = hexc('#56c785')
-MINT_L = hexc('#9ae6bf')
-TEAL = hexc('#6fd6c2')
+BODY = hexc('#0d4a78')
+BODY_D = hexc('#0a3354')
+RIM = hexc('#2cc7a8')
+MINT = hexc('#4fe0b3')
+MINT_L = hexc('#9af7cb')
+TEAL = hexc('#3cc3dc')
 AMBER = hexc('#ffb45a')
-WARN = hexc('#ff7a45')
+LOSS = hexc('#ff9a4a')       # oranye-amber lembut untuk momen paket hilang
 WHITE = hexc('#f4fbf8')
-TXT = hexc('#d7f3e6')
+TXT = hexc('#e6f9f0')
+RIM_DIM = hexc('#2f7a96')
+BODY_DIM = hexc('#0a2e4a')
+BODY_D_DIM = hexc('#082540')
+DARK = hexc('#082a42')
 
-# ---- layout (1080p px)
-GROUND = 700
-X_T, X_R, X_S, X_C, X_D = 235, 625, 1020, 1350, 1700
-A_T = (X_T, 560)           # tiang sensor
-A_R = (X_R, 432)           # relay antenna tip
-A_S = (X_S + 40, 548)      # sink antenna tip
-A_C = (X_C - 20, 420)      # cloud
-A_D = (X_D - 10, 575)      # dashboard
-
-T_TIANG, T_RELAY, T_SINK, T_CLOUD, T_DASH = 0.5, 4.0, 6.3, 8.3, 9.6
-T_FADE0, T_FADE1 = 16.6, 17.6
+# ---- layout dunia (px layar pada kamera L=0)
+G = 760                              # garis tanah
+XT, XR, XS, XC, XD = 300, 1000, 1650, 2300, 2950
+CAM_KEYS = [(0.0, 0), (4.4, 0), (6.0, 560), (6.2, 560), (7.6, 1050), (8.9, 1050), (10.3, 1350), (12.2, 1350), (13.5, 0)]
 
 CAPS = [
-    (0.9, 2.9, 'Sensor membaca kondisi tiang'),
-    (2.9, 4.4, 'Data dirangkum jadi satu paket'),
-    (4.4, 6.2, 'Paket dikirim lewat radio LoRa'),
-    (6.2, 7.7, 'Relay meneruskan paket'),
-    (7.7, 9.0, 'Sink mengumpulkan paket'),
-    (9.0, 10.6, 'Jaringan seluler menuju cloud'),
-    (10.6, 13.0, 'Dashboard menampilkan status'),
-    (13.0, 14.3, 'Paket hilang di perjalanan'),
-    (14.3, 16.5, 'Dikirim ulang sampai ACK diterima'),
+    (0.0, 2.8, 'Sensor membaca kondisi tiang'),
+    (2.8, 4.2, 'Data dirangkum jadi satu paket'),
+    (4.2, 6.0, 'Paket dikirim lewat radio LoRa'),
+    (6.0, 7.4, 'Relay meneruskan paket'),
+    (7.4, 8.8, 'Sink mengumpulkan paket'),
+    (8.8, 10.4, 'Jaringan seluler menuju cloud'),
+    (10.4, 12.2, 'Dashboard menampilkan status'),
+    (12.2, 15.6, 'Kadang paket hilang di perjalanan'),
+    (15.6, 19.4, 'Dikirim ulang sampai ACK diterima'),
+    (19.4, 22.0, 'Sensor membaca kondisi tiang'),   # kembali ke awal (loop)
 ]
-PILLS = [('SENSE', 0.9), ('UNDERSTAND', 2.9), ('DELIVER', 4.4), ('ACT', 11.3)]
-PILL_Y = 925
+PILLS = [('SENSE', 0.0), ('UNDERSTAND', 2.8), ('DELIVER', 4.2), ('ACT', 11.2)]
+PILL_Y = 987
+PILL_H = 104
+T_RESET0, T_RESET1 = 19.6, 20.8      # semua node kembali redup
+T_ON = dict(relay=5.6, sink=7.0, cloud=9.4, dash=10.8)
 
 ST = {}
 
@@ -85,52 +95,61 @@ def font(px):
     return ST[k]
 
 
-class C:
-    def __init__(self, ox, oy, w, h):
-        self.ox, self.oy, self.w, self.h = ox, oy, w, h
-        self.im = Image.new('RGBA', (int(w * S), int(h * S)), (0, 0, 0, 0))
+class Lay:
+    """Kanvas RGBA supersampled. Koordinat desain dikalikan k; origin kanvas = (left, up) px."""
+
+    def __init__(self, left, up, right, down, k=K, lwb=LWB):
+        self.OX, self.OY, self.k, self.lwb = left, up, k, lwb
+        self.w, self.h = left + right, up + down
+        self.im = Image.new('RGBA', (int(self.w * S), int(self.h * S)), (0, 0, 0, 0))
         self.d = ImageDraw.Draw(self.im, 'RGBA')
 
     def p(self, x, y):
-        return ((x - self.ox) * S, (y - self.oy) * S)
+        return ((x * self.k + self.OX) * S, (y * self.k + self.OY) * S)
+
+    def lw(self, w):
+        return max(1, int(round(w * self.k * self.lwb * S)))
 
     def poly(self, pts, fill=None, outline=None, width=0):
         pp = [self.p(*q) for q in pts]
         if fill is not None:
             self.d.polygon(pp, fill=fill)
         if outline is not None and width:
-            self.d.line(pp + [pp[0]], fill=outline, width=int(width * S), joint='curve')
+            self.d.line(pp + [pp[0]], fill=outline, width=self.lw(width), joint='curve')
 
     def rrect(self, x0, y0, x1, y1, r, fill=None, outline=None, width=0):
         a, b = self.p(x0, y0), self.p(x1, y1)
-        self.d.rounded_rectangle([a, b], radius=r * S, fill=fill, outline=outline, width=int(width * S))
+        self.d.rounded_rectangle([a, b], radius=r * self.k * S, fill=fill, outline=outline, width=self.lw(width) if outline else 0)
 
     def circle(self, x, y, r, fill=None, outline=None, width=0):
         a, b = self.p(x - r, y - r), self.p(x + r, y + r)
-        self.d.ellipse([a, b], fill=fill, outline=outline, width=int(width * S))
+        self.d.ellipse([a, b], fill=fill, outline=outline, width=self.lw(width) if outline else 0)
 
     def line(self, pts, fill, width):
-        self.d.line([self.p(*q) for q in pts], fill=fill, width=int(width * S), joint='curve')
+        self.d.line([self.p(*q) for q in pts], fill=fill, width=self.lw(width), joint='curve')
 
     def arc(self, x, y, r, a0, a1, fill, width):
         a, b = self.p(x - r, y - r), self.p(x + r, y + r)
-        self.d.arc([a, b], a0, a1, fill=fill, width=int(width * S))
+        self.d.arc([a, b], a0, a1, fill=fill, width=self.lw(width))
 
     def text(self, x, y, s, px, fill, anchor='mm'):
         self.d.text(self.p(x, y), s, font=font(px), fill=fill, anchor=anchor)
 
-    def paste(self, layer, a=1.0, dy=0.0):
-        im = layer.im
-        if a < 0.999:
-            al = im.getchannel('A').point(lambda v, a=a: int(v * a))
-            im = im.copy()
-            im.putalpha(al)
-        self.im.alpha_composite(im, dest=(int(round((layer.ox - self.ox) * S)), int(round((layer.oy + dy - self.oy) * S))))
+
+def paste_clip(dst, src, x, y):
+    sw, sh = src.size
+    dw, dh = dst.size
+    x0, y0, x1, y1 = max(x, 0), max(y, 0), min(x + sw, dw), min(y + sh, dh)
+    if x1 <= x0 or y1 <= y0:
+        return
+    dst.alpha_composite(src.crop((x0 - x, y0 - y, x1 - x, y1 - y)), dest=(x0, y0))
 
 
-def rot_rect(cx, cy, l, t, ang):
-    cs, sn = math.cos(ang), math.sin(ang)
-    return [(cx + x * cs - y * sn, cy + x * sn + y * cs) for x, y in ((-l / 2, -t / 2), (l / 2, -t / 2), (l / 2, t / 2), (-l / 2, t / 2))]
+def paste_node(main, lay, wx, wy, L):
+    """base node ada di (wx - L, wy) pada layar."""
+    x = int(round((wx - L - lay.OX) * S))
+    y = int(round((wy - lay.OY) * S))
+    paste_clip(main.im, lay.im, x, y)
 
 
 def bez(p0, p1, lift, u):
@@ -139,34 +158,52 @@ def bez(p0, p1, lift, u):
             (1 - u) ** 2 * p0[1] + 2 * (1 - u) * u * cy + u * u * p1[1])
 
 
+def rot_rect(cx, cy, l, t, ang):
+    cs, sn = math.cos(ang), math.sin(ang)
+    return [(cx + x * cs - y * sn, cy + x * sn + y * cs) for x, y in ((-l / 2, -t / 2), (l / 2, -t / 2), (l / 2, t / 2), (-l / 2, t / 2))]
+
+
+def camera(t):
+    for (t0, x0), (t1, x1) in zip(CAM_KEYS, CAM_KEYS[1:]):
+        if t0 <= t <= t1:
+            return x0 + (x1 - x0) * ss(t0, t1, t)
+    return CAM_KEYS[-1][1] if t > CAM_KEYS[-1][0] else CAM_KEYS[0][1]
+
+
+# ---- titik penting (koordinat dunia)
+A_T = (XT, G - 140 * K)                    # modul sensor
+P_START = (XT + 66, A_T[1] - 46)           # paket muncul di samping sensor
+A_R = (XR, G - 289 * K)                    # ujung antena relay
+A_S = (XS + 40 * K, G - 163 * K)           # ujung antena sink
+A_C = (XC, G - 275 * K)                    # pusat awan
+A_CL = (XC - 105 * K, A_C[1] + 26)         # sisi kiri awan
+A_CR = (XC + 100 * K, A_C[1] + 34)         # sisi kanan awan
+A_DT = (XD - 110 * K, G - 232 * K)         # sisi atas-kiri dashboard
+
+
 def static():
     if 'bg' in ST:
         return
     ys = np.arange(H, dtype=np.float32)[:, None]
     xs = np.arange(W, dtype=np.float32)[None, :]
-    top, mid, bot = np.array(hexc('#051f33'), np.float32) / 255, np.array(hexc('#08304d'), np.float32) / 255, np.array(hexc('#0c4467'), np.float32) / 255
+    top, mid, bot = (np.array(hexc(c), np.float32) / 255 for c in ('#04080f', '#071522', '#0a3550'))
     t = (ys / H)[:, 0:1]
-    rows = np.where(t < 0.5, top + (mid - top) * (t / 0.5), mid + (bot - mid) * ((t - 0.5) / 0.5))  # (H,3)
+    rows = np.where(t < 0.5, top + (mid - top) * (t / 0.5), mid + (bot - mid) * ((t - 0.5) / 0.5))
     bg = np.broadcast_to(rows[:, None, :], (H, W, 3)).copy()
-    # soft aurora-green haze in lower area, mostly under the diagram
-    hz = np.exp(-(((xs - 1000) / 900.0) ** 2 + ((ys - 760) / 280.0) ** 2))[..., None]
-    bg += hz * np.array([0.02, 0.12, 0.09], np.float32) * 0.9
-    # vignette
-    vg = 1 - 0.22 * (((xs - W / 2) / (W / 2)) ** 2 * 0.6 + ((ys - H / 2) / (H / 2)) ** 2 * 0.4)
+    hz = np.exp(-(((xs - 1000) / 1000.0) ** 2 + ((ys - 780) / 300.0) ** 2))[..., None]
+    bg += hz * np.array([0.015, 0.10, 0.08], np.float32) * 0.8
+    vg = 1 - 0.20 * (((xs - W / 2) / (W / 2)) ** 2 * 0.6 + ((ys - H / 2) / (H / 2)) ** 2 * 0.4)
     bg *= vg[..., None]
     ST['bg'] = bg.astype(np.float32)
     rng = np.random.default_rng(11)
-    n = 55
-    ST['stars'] = (rng.uniform(20, W - 20, n), rng.uniform(20, 560, n), rng.uniform(0.8, 1.7, n),
-                   rng.uniform(0.25, 0.7, n), rng.choice([1, 2, 3], n), rng.uniform(0, TAU, n))
-    ST['noise'] = np.random.default_rng(5).random((H, W, 3), dtype=np.float32) - 0.5
-    # pill geometry
-    c = C(0, 0, 10, 10)
-    wd = []
-    for name, _ in PILLS:
-        l = c.d.textlength(name, font=font(38)) / S
-        wd.append(l + 74)
-    gap = 80
+    n = 70
+    ST['stars'] = (rng.uniform(-200, W + 200, n), rng.uniform(20, 640, n), rng.uniform(0.9, 1.9, n),
+                   rng.uniform(0.3, 0.75, n), rng.choice([1, 2, 3], n), rng.uniform(0, TAU, n))
+    ST['noise'] = (np.random.default_rng(5).random((H, W, 3), dtype=np.float32) - 0.5) * 1.3
+    # geometri pil
+    c = Lay(0, 0, 10, 10, k=1)
+    wd = [c.d.textlength(nm, font=font(52)) / S + 84 for nm, _ in PILLS]
+    gap = 78
     total = sum(wd) + gap * (len(wd) - 1)
     x = (W - total) / 2
     geo = []
@@ -176,349 +213,462 @@ def static():
     ST['pills'] = geo
 
 
-def pole_layer(x, h, kind, pulse, flash, lamp_a):
-    """Draw a pole node on its own layer. kind: 'tiang' or 'relay'."""
-    top = GROUND - h
-    c = C(x - 230, GROUND - 470, 460, 480)
-    sw = 2.6
-    # base + pole
-    c.rrect(x - 26, GROUND - 14, x + 26, GROUND + 4, 6, fill=rgba(BODY_D), outline=rgba(RIM, .8), width=2)
-    c.poly([(x - 8, GROUND - 12), (x + 8, GROUND - 12), (x + 5, top), (x - 5, top)], fill=rgba(BODY), outline=rgba(RIM), width=sw)
-    # arm and lamp head (left)
+# ----------------------------------------------------------------- node layers (origin = pusat dasar, y ke atas negatif)
+def cols(act):
+    return dict(rim=mix(RIM_DIM, RIM, act), body=mix(BODY_DIM, BODY, act), bd=mix(BODY_D_DIM, BODY_D, act))
+
+
+def tiang_layer(pulse, flash, check):
+    c = Lay(300, 520, 330, 44)
+    q = cols(1.0)
+    rim, body, bd = rgba(q['rim']), rgba(q['body']), rgba(q['bd'])
+    c.rrect(-30, -16, 30, 4, 6, fill=bd, outline=rim, width=2.6)
+    c.poly([(-10, -14), (10, -14), (6.5, -300), (-6.5, -300)], fill=body, outline=rim, width=3)
+    top = -300
+    # lengan + kepala lampu (kiri)
     pts = []
-    p0, p1, p2 = (x, top + 40), (x - 18, top + 4), (x - 100, top + 12)
+    p0, p1, p2 = (0, top + 40), (-18, top + 4), (-100, top + 12)
     for i in range(25):
         u = i / 24
         pts.append(((1 - u) ** 2 * p0[0] + 2 * (1 - u) * u * p1[0] + u * u * p2[0], (1 - u) ** 2 * p0[1] + 2 * (1 - u) * u * p1[1] + u * u * p2[1]))
-    c.line(pts, rgba(RIM), 9)
-    c.line(pts, rgba(BODY), 5)
-    lx, ly = x - 108, top + 15
-    c.rrect(lx - 36, ly - 8, lx + 30, ly + 8, 7, fill=rgba(BODY), outline=rgba(RIM), width=2.4)
-    c.rrect(lx - 30, ly + 4, lx + 24, ly + 9, 2.5, fill=rgba(mix(BODY, AMBER, lamp_a)))
-    if kind == 'tiang':
-        pc = (x + 28, top - 18)
-        poly = rot_rect(pc[0], pc[1], 150, 16, math.radians(-22))
-        c.poly([(x - 4, top + 6), (x + 4, top + 6), (pc[0] + 8, pc[1] + 6), (pc[0] - 8, pc[1] + 6)], fill=rgba(BODY), outline=rgba(RIM), width=2)
-        c.poly(poly, fill=rgba(BODY_D), outline=rgba(MINT), width=2.6)
-        for k in (-0.3, 0.0, 0.3):
-            ax = pc[0] + k * 150 * math.cos(math.radians(-22))
-            ay = pc[1] + k * 150 * math.sin(math.radians(-22))
-            c.line([(ax + 5, ay - 5), (ax - 5, ay + 6)], rgba(MINT, .55), 1.8)
-        # sensor module with pulsing dot
-        sx, sy = A_T
-        c.rrect(sx - 22, sy - 22, sx + 22, sy + 22, 9, fill=rgba(BODY_D), outline=rgba(MINT, .95), width=3)
-        r = 6.5 + 2.2 * pulse
-        col = mix(MINT, WHITE, flash)
-        c.circle(sx, sy, r, fill=rgba(col))
+    c.line(pts, rim, 11)
+    c.line(pts, body, 6)
+    lx, ly = -108, top + 15
+    c.rrect(lx - 38, ly - 9, lx + 32, ly + 9, 8, fill=body, outline=rim, width=2.6)
+    c.rrect(lx - 32, ly + 4, lx + 26, ly + 10, 3, fill=rgba(AMBER))
+    # panel surya
+    pc = (28, top - 20)
+    c.poly([(-4, top + 6), (4, top + 6), (pc[0] + 8, pc[1] + 6), (pc[0] - 8, pc[1] + 6)], fill=body, outline=rim, width=2.4)
+    c.poly(rot_rect(pc[0], pc[1], 156, 19, math.radians(-22)), fill=bd, outline=rgba(MINT), width=3)
+    for k in (-0.3, 0.0, 0.3):
+        ax = pc[0] + k * 156 * math.cos(math.radians(-22))
+        ay = pc[1] + k * 156 * math.sin(math.radians(-22))
+        c.line([(ax + 5, ay - 5), (ax - 5, ay + 6)], rgba(MINT, .6), 2.2)
+    # modul sensor
+    sy = -140
+    c.rrect(-28, sy - 28, 28, sy + 28, 11, fill=bd, outline=rgba(MINT), width=3.4)
+    if check > 0.01:
+        c.circle(0, sy, 14, fill=rgba(WHITE))
+        c.line([(-6.5, sy + 0.5), (-1.5, sy + 6), (7.5, sy - 5.5)], rgba(hexc('#0a6a4a')), 3.6)
     else:
-        # antenna mast with two small arcs
-        c.line([(x, top + 4), (x, top - 26)], rgba(RIM), 6)
-        c.line([(x, top + 4), (x, top - 26)], rgba(BODY), 3)
-        c.circle(x, top - 30, 7, fill=rgba(BODY_D), outline=rgba(MINT), width=2.6)
-        pc = (x + 40, top + 6)
-        c.poly(rot_rect(pc[0], pc[1], 96, 12, math.radians(-18)), fill=rgba(BODY_D), outline=rgba(MINT), width=2.2)
-        c.line([(x + 6, top + 22), (pc[0] - 4, pc[1] + 3)], rgba(RIM), 3)
+        r = 8.5 + 3 * pulse
+        c.circle(0, sy, r, fill=rgba(mix(MINT, WHITE, flash)))
+    return c
+
+
+def relay_layer(act, flash):
+    c = Lay(300, 480, 300, 44)
+    q = cols(act)
+    rim, body, bd = rgba(q['rim']), rgba(q['body']), rgba(q['bd'])
+    lit = mix(RIM_DIM, MINT, act)
+    top = -250
+    c.rrect(-30, -16, 30, 4, 6, fill=bd, outline=rim, width=2.6)
+    c.poly([(-10, -14), (10, -14), (6.5, top), (-6.5, top)], fill=body, outline=rim, width=3)
+    pts = []
+    p0, p1, p2 = (0, top + 40), (-18, top + 4), (-100, top + 12)
+    for i in range(25):
+        u = i / 24
+        pts.append(((1 - u) ** 2 * p0[0] + 2 * (1 - u) * u * p1[0] + u * u * p2[0], (1 - u) ** 2 * p0[1] + 2 * (1 - u) * u * p1[1] + u * u * p2[1]))
+    c.line(pts, rim, 11)
+    c.line(pts, body, 6)
+    lx, ly = -108, top + 15
+    c.rrect(lx - 38, ly - 9, lx + 32, ly + 9, 8, fill=body, outline=rim, width=2.6)
+    c.rrect(lx - 32, ly + 4, lx + 26, ly + 10, 3, fill=rgba(mix(BODY_DIM, AMBER, 0.35 + 0.65 * act)))
+    # mast antena + panel kecil
+    c.line([(0, top + 4), (0, top - 30)], rim, 8)
+    c.line([(0, top + 4), (0, top - 30)], body, 4)
+    c.circle(0, top - 36, 9, fill=rgba(mix(bd, MINT, 0.9 * flash)), outline=rgba(lit), width=3.2)
+    pc = (42, top + 6)
+    c.poly(rot_rect(pc[0], pc[1], 100, 14, math.radians(-18)), fill=bd, outline=rgba(lit), width=2.8)
+    c.line([(6, top + 24), (pc[0] - 4, pc[1] + 3)], rim, 3.6)
+    # modul radio kecil di tiang
+    c.rrect(-20, -118, 20, -78, 8, fill=bd, outline=rgba(lit), width=3)
+    c.circle(0, -98, 6.5 + 2.5 * flash, fill=rgba(mix(hexc('#1b5b6c'), MINT, act)))
     return c
 
 
 def sink_layer(act, flash):
-    c = C(X_S - 150, GROUND - 230, 300, 250)
-    x = X_S
-    c.rrect(x - 98, GROUND - 110, x + 98, GROUND, 18, fill=rgba(BODY), outline=rgba(RIM), width=3)
-    c.rrect(x - 98, GROUND - 110, x + 98, GROUND - 76, 16, fill=rgba(BODY_D), outline=rgba(RIM), width=3)
-    # antenna
-    c.line([(x + 40, GROUND - 110), (x + 40, GROUND - 152)], rgba(RIM), 7)
-    c.line([(x + 40, GROUND - 110), (x + 40, GROUND - 152)], rgba(BODY), 3.5)
-    c.circle(x + 40, GROUND - 156, 7, fill=rgba(mix(BODY_D, MINT, 0.4 + 0.6 * flash)), outline=rgba(MINT), width=2.4)
-    # LED row
+    c = Lay(240, 340, 240, 44)
+    q = cols(act)
+    rim, body, bd = rgba(q['rim']), rgba(q['body']), rgba(q['bd'])
+    c.rrect(-100, -112, 100, 0, 18, fill=body, outline=rim, width=3.4)
+    c.rrect(-100, -112, 100, -76, 16, fill=bd, outline=rim, width=3.4)
+    c.line([(40, -112), (40, -156)], rim, 8)
+    c.line([(40, -112), (40, -156)], body, 4)
+    c.circle(40, -163, 9, fill=rgba(mix(bd, MINT, 0.15 + 0.85 * flash * act)), outline=rgba(mix(RIM_DIM, MINT, act)), width=3)
     for i in range(3):
-        on = ss(0.0, 1.0, act - i * 0.25)
+        on = ss(0.0, 1.0, act * 1.0 - i * 0.2)
         col = mix(hexc('#1b5b6c'), MINT if i < 2 else AMBER, on)
-        c.circle(x - 62 + i * 30, GROUND - 93, 7, fill=rgba(col))
-    # ports
+        c.circle(-62 + i * 32, -94, 8.5, fill=rgba(col))
     for i in range(3):
-        c.rrect(x - 66 + i * 54, GROUND - 52, x - 30 + i * 54, GROUND - 28, 5, fill=rgba(hexc('#082a42')), outline=rgba(RIM, .6), width=2)
+        c.rrect(-68 + i * 54, -52, -30 + i * 54, -26, 5, fill=rgba(DARK), outline=rgba(q['rim'], .7), width=2.2)
     return c
 
 
-def cloud_layer(flash):
-    cx, cy = X_C, 400
-    c = C(cx - 150, cy - 90, 300, 190)
-    parts = [('c', cx - 62, cy + 6, 38), ('c', cx - 12, cy - 20, 54), ('c', cx + 46, cy - 2, 42)]
+def cloud_layer(act, flash):
+    c = Lay(300, 170, 300, 170)
+    q = cols(act)
+    parts = [(-62, 6, 38), (-12, -20, 54), (46, -2, 42)]
     for k in (4.5, 0):
-        col = rgba(RIM) if k else rgba(mix(BODY, MINT, 0.12 * flash))
-        for _, x, y, r in parts:
+        col = rgba(q['rim']) if k else rgba(mix(q['body'], MINT, 0.12 * flash))
+        for x, y, r in parts:
             c.circle(x, y, r + k, fill=col)
-        c.rrect(cx - 104 - k, cy + 2 - k, cx + 96 + k, cy + 46 + k, 22 + k, fill=col)
-    # small status glyph: stacked server lines
+        c.rrect(-104 - k, 2 - k, 96 + k, 46 + k, 22 + k, fill=col)
     for i in range(2):
-        c.rrect(cx - 38, cy + 8 + i * 17 - 6, cx + 30, cy + 8 + i * 17 + 4, 4, fill=rgba(BODY_D))
-        c.circle(cx + 18, cy + 8 + i * 17 - 1, 3, fill=rgba(mix(hexc('#1b5b6c'), MINT, 0.5 + 0.5 * flash)))
+        c.rrect(-40, 8 + i * 18 - 7, 32, 8 + i * 18 + 5, 4, fill=rgba(q['bd']))
+        c.circle(20, 8 + i * 18 - 1, 3.6, fill=rgba(mix(hexc('#1b5b6c'), MINT, act * (0.5 + 0.5 * flash))))
     return c
 
 
-def dash_layer(rows, flash):
-    cx = X_D
-    c = C(cx - 180, GROUND - 270, 360, 290)
-    top, bot = GROUND - 225, GROUND - 55
-    c.poly([(cx - 20, bot), (cx + 20, bot), (cx + 28, GROUND - 6), (cx - 28, GROUND - 6)], fill=rgba(BODY_D), outline=rgba(RIM), width=2.4)
-    c.rrect(cx - 82, GROUND - 14, cx + 82, GROUND + 2, 6, fill=rgba(BODY_D), outline=rgba(RIM), width=2.4)
-    c.rrect(cx - 150, top, cx + 150, bot, 16, fill=rgba(BODY), outline=rgba(RIM), width=3.5)
-    c.rrect(cx - 136, top + 14, cx + 136, bot - 14, 8, fill=rgba(hexc('#082a42')))
-    cols = [MINT, MINT, AMBER]
+def dash_layer(act, rows):
+    c = Lay(260, 340, 260, 44)
+    q = cols(act)
+    rim, body, bd = rgba(q['rim']), rgba(q['body']), rgba(q['bd'])
+    top, bot = -225, -55
+    c.poly([(-20, bot), (20, bot), (28, -6), (-28, -6)], fill=bd, outline=rim, width=2.8)
+    c.rrect(-82, -14, 82, 2, 6, fill=bd, outline=rim, width=2.8)
+    c.rrect(-150, top, 150, bot, 16, fill=body, outline=rim, width=4)
+    c.rrect(-136, top + 14, 136, bot - 14, 8, fill=rgba(DARK))
+    cc = [MINT, MINT, AMBER]
     for i in range(3):
         y = top + 44 + i * 42
         on = rows[i]
-        dcol = mix(hexc('#1b5b6c'), cols[i], on)
-        c.circle(cx - 104, y, 10, fill=rgba(dcol))
-        c.rrect(cx - 80, y - 8, cx + 40, y + 8, 8, fill=rgba(mix(hexc('#124360'), cols[i], 0.75 * on)))
-        c.rrect(cx + 54, y - 8, cx + 108, y + 8, 8, fill=rgba(mix(hexc('#124360'), cols[i], 0.4 * on)))
+        c.circle(-104, y, 11, fill=rgba(mix(hexc('#1b5b6c'), cc[i], on)))
+        c.rrect(-80, y - 9, 40, y + 9, 9, fill=rgba(mix(hexc('#124360'), cc[i], 0.8 * on)))
+        c.rrect(54, y - 9, 108, y + 9, 9, fill=rgba(mix(hexc('#124360'), cc[i], 0.45 * on)))
     return c
 
 
 def glow_add(img, x, y, sig, col, amp):
     R = int(sig * 3.2)
     x0, y0 = int(x) - R, int(y) - R
-    xs = np.arange(x0, x0 + 2 * R, dtype=np.float32)
-    ys = np.arange(y0, y0 + 2 * R, dtype=np.float32)
-    g = amp * np.exp(-(((xs[None, :] - x) ** 2 + (ys[:, None] - y) ** 2) / (2 * sig * sig)))
     cx0, cy0 = max(x0, 0), max(y0, 0)
     cx1, cy1 = min(x0 + 2 * R, W), min(y0 + 2 * R, H)
     if cx1 <= cx0 or cy1 <= cy0:
         return
-    g = g[cy0 - y0:cy1 - y0, cx0 - x0:cx1 - x0]
+    xs = np.arange(cx0, cx1, dtype=np.float32)
+    ys = np.arange(cy0, cy1, dtype=np.float32)
+    g = amp * np.exp(-(((xs[None, :] - x) ** 2 + (ys[:, None] - y) ** 2) / (2 * sig * sig)))
     img[cy0:cy1, cx0:cx1] += g[..., None] * (np.array(col, np.float32) / 255.0)[None, None, :]
 
 
-def draw_packet(c, glows, pos, scale=1.0, col=MINT, a=1.0, glow=0.55):
+def draw_packet(c, glows, pos, scale=1.0, col=MINT, a=1.0, glow=0.6):
     x, y = pos
-    r = 11 * scale
-    c.rrect(x - r, y - r, x + r, y + r, 4 * scale, fill=rgba(col, a))
-    c.rrect(x - r * 0.5, y - r * 0.5, x + r * 0.5, y + r * 0.5, 2 * scale, fill=rgba(mix(col, WHITE, 0.6), a))
+    r = 13 * K * scale
+    c.rrect(x - r, y - r, x + r, y + r, 5 * scale, fill=rgba(col, a))
+    c.rrect(x - r * 0.52, y - r * 0.52, x + r * 0.52, y + r * 0.52, 3 * scale, fill=rgba(mix(col, WHITE, 0.65), a))
     if a > 0.02:
-        glows.append((x, y, 20 * scale, col, glow * a))
+        glows.append((x, y, 26 * scale, col, glow * a))
 
 
-def travel(p0, p1, lift, t, ta, tb):
-    u = ss(ta, tb, t)
-    return bez(p0, p1, lift, u), u
+def shard(c, x, y, size, ang, fill):
+    pts = [(x + size * math.cos(ang + da) * f, y + size * math.sin(ang + da) * f) for da, f in ((0, 1.0), (2.3, 0.75), (4.0, 0.55))]
+    c.poly_px(pts, fill)
 
 
 def render(fi):
     static()
     t = fi / FPS
-    out_a = 1 - ss(T_FADE0, T_FADE1, t)
+    L = camera(t)
+    reset = 1 - ss(T_RESET0, T_RESET1, t)
     glows = []
     img = ST['bg'].copy()
-    # stars
     sx, sy, sr, sb, sk, sp = ST['stars']
     for i in range(len(sx)):
         tw = 0.7 + 0.3 * math.sin(sk[i] * TAU * t / DUR + sp[i])
-        glow_add(img, sx[i], sy[i], sr[i] * 0.9, (200, 240, 225), sb[i] * tw * 0.8)
+        glow_add(img, sx[i] - 0.12 * L, sy[i], sr[i] * 0.9, (200, 240, 225), sb[i] * tw * 0.8)
 
-    main = C(0, 0, W, H)
-    # road line
-    main.line([(110, GROUND + 3), (1810, GROUND + 3)], rgba(RIM, .22), 3)
+    main = Lay(0, 0, W, H, k=1, lwb=1.0)
 
-    ap = {k: eo(v, v + 1.0, t) * out_a for k, v in dict(tiang=T_TIANG, relay=T_RELAY, sink=T_SINK, cloud=T_CLOUD, dash=T_DASH).items()}
+    def X(wx):
+        return wx - L
 
-    # ---- links (dotted) between nodes
-    def dots(p0, p1, lift, a, offs=0.0, col=RIM, n=None):
-        if a < 0.02:
-            return
-        L = math.hypot(p1[0] - p0[0], p1[1] - p0[1])
-        n = int(L / 26)
+    # lampu & pulsa
+    act = dict(relay=ss(T_ON['relay'], T_ON['relay'] + 0.6, t) * reset,
+               sink=ss(T_ON['sink'], T_ON['sink'] + 0.6, t) * reset,
+               cloud=ss(T_ON['cloud'], T_ON['cloud'] + 0.6, t) * reset,
+               dash=ss(T_ON['dash'], T_ON['dash'] + 0.6, t) * reset)
+    # ---- garis tanah
+    main.d.line([(0, (G + 6) * S), (W * S, (G + 6) * S)], fill=rgba(RIM_DIM, .55), width=int(4 * S))
+
+    # ---- tautan titik (selalu tampak redup, menyala saat dilalui)
+    def dots(p0, p1, lift, a, offs=0.0, col=RIM):
+        Ln = math.hypot(p1[0] - p0[0], p1[1] - p0[1]) + abs(lift) * 0.6
+        n = max(int(Ln / 30), 4)
         for i in range(n + 1):
             u = (i + offs) / n
             if 0 <= u <= 1:
                 x, y = bez(p0, p1, lift, u)
-                main.circle(x, y, 3.2, fill=rgba(col, a))
-    dots(A_T, A_R, 100, 0.40 * ap['relay'])
-    dots(A_R, A_S, 120, 0.40 * ap['sink'])
-    off = (t * 0.9) % 1.0
-    dots(A_S, A_C, 0, 0.55 * ap['cloud'], off, TEAL)
-    dots((A_C[0] + 40, A_C[1] + 20), A_D, 0, 0.55 * ap['dash'], off, TEAL)
+                x -= L
+                if -20 < x < W + 20:
+                    main.circle(x, y, 4.6, fill=rgba(col, a))
+    off = (t / 2.2) % 1.0
+    dots(P_START, A_R, 130, 0.30 + 0.45 * act['relay'], col=mix(RIM_DIM, RIM, act['relay']))
+    dots(A_R, A_S, 170, 0.30 + 0.45 * act['sink'], col=mix(RIM_DIM, RIM, act['sink']))
+    dots(A_S, A_CL, 40, 0.30 + 0.35 * act['cloud'], off * act['cloud'], col=mix(RIM_DIM, TEAL, act['cloud']))
+    dots(A_CR, A_DT, 40, 0.30 + 0.35 * act['dash'], off * act['dash'], col=mix(RIM_DIM, TEAL, act['dash']))
 
-    # ---- LoRa rings (from sensor, from relay)
-    def rings(origin, t0, dur, rmax, n=3, gap=0.42, col=MINT):
-        for k in range(n):
-            u = (t - t0 - k * gap) / dur
-            if 0 < u < 1:
-                r = 26 + (rmax - 26) * (1 - (1 - u) ** 2)
-                main.circle(origin[0], origin[1], r, outline=rgba(col, 0.55 * (1 - u) ** 1.3), width=3.5)
-    # sensor pulse rings (SENSE phase)
+    # ---- cincin (sensor, LoRa)
+    def ring_at(origin, r0, r1, u, col, a0, w=4.5):
+        r = r0 + (r1 - r0) * u
+        o = (origin[0] - L, origin[1])
+        main.circle(o[0], o[1], r, outline=rgba(col, a0 * (1 - u) ** 1.3), width=w)
+
     for k in range(3):
-        u = ((t - 1.0 - k * 0.9) / 0.9)
+        u = (t - 1.0 - k * 0.9) / 0.9
         if 0 < u < 1:
-            r = 24 + 26 * u
-            main.circle(A_T[0], A_T[1], r, outline=rgba(MINT_L, 0.6 * (1 - u)), width=3)
-    rings(A_T, 4.7, 1.5, 330)
-    rings(A_R, 6.3, 1.4, 300, n=2)
-    rings(A_T, 14.6, 1.4, 300, n=2)
-
-    # ---- nodes
-    pulse = 0.5 + 0.5 * math.sin(TAU * t / 1.2)
-    flash_t = 0.0
-    for tt in (15.55,):
-        flash_t = max(flash_t, 1 - ss(0.0, 0.5, t - tt)) if t >= tt else flash_t
-    lamp_t = 0.55 + 0.45 * ss(0, 1, ap['tiang'])
-    L1 = pole_layer(X_T, 300, 'tiang', pulse, flash_t, lamp_t)
-    main.paste(L1, ap['tiang'], dy=(1 - ap['tiang']) * 22)
-    relay_flash = 0.0
-    L2 = pole_layer(X_R, 250, 'relay', 0, 0, 0.6)
-    main.paste(L2, ap['relay'], dy=(1 - ap['relay']) * 22)
-    sink_act = ss(0, 1, t - 7.4) * (1 if t < 16.5 else out_a)
-    sink_flash = max(0, 1 - ss(0.0, 0.6, t - 7.4)) if t >= 7.4 else 0.0
-    L3 = sink_layer(sink_act, sink_flash)
-    main.paste(L3, ap['sink'], dy=(1 - ap['sink']) * 22)
-    cloud_flash = max(0, 1 - ss(0.0, 0.7, t - 10.3)) if t >= 10.3 else 0.0
-    L4 = cloud_layer(cloud_flash)
-    main.paste(L4, ap['cloud'], dy=(1 - ap['cloud']) * 22)
-    rows = [ss(0, 0.3, t - 11.6) * min(1, out_a * 1.0 + 0), ss(0, 0.3, t - 12.0), ss(0, 0.3, t - 12.4)]
-    rows = [r_ for r_ in rows]
-    L5 = dash_layer(rows, 0)
-    main.paste(L5, ap['dash'], dy=(1 - ap['dash']) * 22)
-
-    # node glows (lamps, sensor)
-    glows.append((X_T - 118, GROUND - 300 + 24, 46, AMBER, 0.34 * ap['tiang']))
-    glows.append((X_T - 118, GROUND - 300 + 24, 150, AMBER, 0.07 * ap['tiang']))
-    glows.append((X_R - 118, GROUND - 250 + 24, 40, AMBER, 0.26 * ap['relay']))
-    glows.append((X_R - 118, GROUND - 250 + 24, 130, AMBER, 0.05 * ap['relay']))
-    glows.append((A_T[0], A_T[1], 36, MINT, (0.10 + 0.10 * pulse) * ap['tiang']))
-    if ap['sink'] > 0.01:
-        glows.append((A_S[0], A_S[1], 40, MINT, 0.12 * ap['sink'] * (0.4 + 0.6 * sink_flash + 0.3 * sink_act)))
-    glows.append((A_C[0] - 10, A_C[1] + 6, 90, MINT, (0.05 + 0.20 * cloud_flash) * ap['cloud']))
-
-    # ---- cellular signal arcs at sink antenna (pointing toward the cloud)
-    ang0 = math.degrees(math.atan2(A_C[1] - A_S[1], A_C[0] - A_S[0]))
+            ring_at(A_T, 36, 82, u, MINT_L, 0.7, 3.8)
     for k in range(3):
-        u = (t - 8.7 - k * 0.22) / 1.0
-        if 0 < u < 1 and ap['cloud'] > 0.01:
-            r = 34 + k * 20
-            main.arc(A_S[0], A_S[1], r, ang0 - 38, ang0 + 38, rgba(TEAL, 0.8 * math.sin(math.pi * u) * ap['cloud']), 4)
+        u = (t - 4.7 - k * 0.45) / 1.5
+        if 0 < u < 1:
+            ring_at(A_T, 40, 360, 1 - (1 - u) ** 2, MINT, 0.6)
+    for k in range(2):
+        u = (t - 6.3 - k * 0.45) / 1.4
+        if 0 < u < 1:
+            ring_at(A_R, 40, 320, 1 - (1 - u) ** 2, MINT, 0.6)
+    for k in range(2):
+        u = (t - 16.6 - k * 0.45) / 1.4
+        if 0 < u < 1:
+            ring_at(A_T, 40, 320, 1 - (1 - u) ** 2, MINT, 0.6)
 
-    # ---- packets
-    # first packet journey
-    # form at tiang 2.9-3.9
-    if 3.0 <= t < 4.8:
+    # ---- node
+    pulse = 0.5 + 0.5 * math.sin(TAU * t / 1.1)
+    flash_t = max(0.0, 1 - ss(0.0, 0.5, t - 18.8)) if 18.8 <= t < 19.4 else 0.0
+    check = ss(0, 0.2, t - 18.8) * (1 - ss(19.2, 19.45, t)) if 18.8 <= t < 19.5 else 0.0
+    L1 = tiang_layer(pulse, flash_t, check)
+    paste_node(main, L1, XT, G, L)
+    relay_flash = (max(0, 1 - ss(0.0, 0.5, t - 5.9)) if 5.9 <= t < 6.5 else 0.0) + (max(0, 1 - ss(0.0, 0.5, t - 17.6)) if 17.6 <= t < 18.2 else 0.0)
+    paste_node(main, relay_layer(act['relay'], min(relay_flash, 1)), XR, G, L)
+    sink_flash = max(0, 1 - ss(0.0, 0.6, t - 7.4)) if 7.4 <= t < 8.0 else 0.0
+    paste_node(main, sink_layer(act['sink'], sink_flash), XS, G, L)
+    cloud_flash = max(0, 1 - ss(0.0, 0.7, t - 10.3)) if 10.3 <= t < 11.0 else 0.0
+    paste_node(main, cloud_layer(act['cloud'], cloud_flash), XC, A_C[1], L)
+    rows = [ss(0, 0.3, t - 11.6) * reset, ss(0, 0.3, t - 12.0) * reset, ss(0, 0.3, t - 12.4) * reset]
+    paste_node(main, dash_layer(act['dash'], rows), XD, G, L)
+
+    # ---- label node (alpha 1, warna berubah)
+    def label(wx, y, s_, a):
+        main.text(X(wx), y, s_, 48, rgba(mix(hexc('#93bccb'), TXT, a)))
+    label(XT, G + 62, 'Tiang', 1.0)
+    label(XR, G + 62, 'Relay (emulasi)', max(act['relay'], 0.0))
+    label(XS, G + 62, 'Sink', act['sink'])
+    label(XC, A_C[1] + 130, 'Cloud', act['cloud'])
+    label(XD, G + 62, 'Dashboard', act['dash'])
+
+    # ---- glow lampu/sensor
+    lampT = (XT - 108 * K - L, G - 285 * K + 24)
+    lampR = (XR - 108 * K - L, G - 235 * K + 24)
+    glows.append((lampT[0], lampT[1], 56, AMBER, 0.34))
+    glows.append((lampT[0], lampT[1], 170, AMBER, 0.07))
+    glows.append((lampR[0], lampR[1], 52, AMBER, 0.12 + 0.20 * act['relay']))
+    glows.append((lampR[0], lampR[1], 150, AMBER, 0.03 + 0.03 * act['relay']))
+    glows.append((A_T[0] - L, A_T[1], 44, MINT, 0.10 + 0.10 * pulse))
+    glows.append((A_S[0] - L, A_S[1], 46, MINT, 0.12 * act['sink'] * (0.4 + 0.6 * sink_flash + 0.3 * act['sink'])))
+    glows.append((A_C[0] - L, A_C[1] + 6, 110, MINT, (0.03 + 0.20 * cloud_flash) * (0.4 + 0.6 * act['cloud'])))
+
+    # ---- sinyal seluler di antena sink
+    ang0 = math.degrees(math.atan2(A_CL[1] - A_S[1], A_CL[0] - A_S[0]))
+    for k in range(3):
+        u = (t - 8.8 - k * 0.22) / 1.0
+        if 0 < u < 1:
+            r = 40 + k * 24
+            main.arc(A_S[0] - L, A_S[1], r, ang0 - 38, ang0 + 38, rgba(TEAL, 0.85 * math.sin(math.pi * u)), 5)
+
+    # ---- paket
+    def trail(p0, p1, lift, u, n=3):
+        for k in range(1, n + 1):
+            pk = bez(p0, p1, lift, max(u - 0.05 * k, 0))
+            draw_packet(main, glows, (pk[0] - L, pk[1]), scale=0.72 - 0.12 * k, a=0.38 / k, glow=0.0)
+
+    def fly(p0, p1, lift, ta, tb, col=MINT, scale=1.0, tr=True):
+        u = ss(ta, tb, t)
+        pos = bez(p0, p1, lift, u)
+        if tr:
+            trail(p0, p1, lift, u)
+        draw_packet(main, glows, (pos[0] - L, pos[1]), scale=scale, col=col)
+        return pos
+
+    PS = (P_START[0] - L, P_START[1])
+    if 2.8 <= t < 4.7:      # paket terbentuk di samping sensor
         f = eo(3.0, 3.8, t)
-        # packet forms beside the sensor and hovers until it launches
-        draw_packet(main, glows, (A_T[0], A_T[1] - 52 * f), scale=f, a=f * ap['tiang'])
-    if 4.8 <= t < 5.9:
-        pos, u = travel((A_T[0], A_T[1] - 52), A_R, 100, t, 4.8, 5.9)
-        for k in range(1, 4):
-            pk = bez((A_T[0], A_T[1] - 52), A_R, 100, max(u - 0.05 * k, 0))
-            draw_packet(main, glows, pk, scale=0.7 - 0.12 * k, a=0.35 / k, glow=0.0)
-        draw_packet(main, glows, pos)
+        draw_packet(main, glows, PS, scale=f, a=f)
+    if 4.7 <= t < 5.9:
+        fly(P_START, A_R, 130, 4.7, 5.9)
     if 5.9 <= t < 6.5:
-        draw_packet(main, glows, A_R, scale=1 + 0.25 * math.sin(math.pi * ss(5.9, 6.5, t)))
-    if 6.4 <= t < 7.5:
-        pos, u = travel(A_R, A_S, 140, t, 6.4, 7.5)
-        for k in range(1, 4):
-            pk = bez(A_R, A_S, 140, max(u - 0.05 * k, 0))
-            draw_packet(main, glows, pk, scale=0.7 - 0.12 * k, a=0.35 / k, glow=0.0)
-        draw_packet(main, glows, pos)
-    if 7.5 <= t < 9.2:
-        a = 1.0 if t < 9.0 else 1 - ss(9.0, 9.2, t) * 0.0
-        draw_packet(main, glows, A_S, scale=1 + 0.15 * math.sin(TAU * (t - 7.5) / 0.8) * (1 if t < 8.6 else 0))
-    if 9.0 <= t < 10.2:
-        pos, u = travel(A_S, A_C, 0, t, 9.0, 10.2)
-        draw_packet(main, glows, pos, col=TEAL, scale=0.9)
+        draw_packet(main, glows, (A_R[0] - L, A_R[1]), scale=1 + 0.25 * math.sin(math.pi * ss(5.9, 6.5, t)))
+    if 6.5 <= t < 7.5:
+        fly(A_R, A_S, 170, 6.5, 7.5)
+    if 7.5 <= t < 8.9:
+        draw_packet(main, glows, (A_S[0] - L, A_S[1]), scale=1 + 0.15 * math.sin(TAU * (t - 7.5) / 0.8) * (1 if t < 8.6 else 0))
+    if 8.9 <= t < 10.2:
+        fly(A_S, A_CL, 40, 8.9, 10.2, col=TEAL, scale=0.95, tr=False)
     if 10.2 <= t < 10.5:
-        draw_packet(main, glows, A_C, col=TEAL, scale=0.9 * (1 - ss(10.2, 10.5, t)) + 0.2, a=1 - ss(10.2, 10.5, t))
-    if 10.45 <= t < 11.5:
-        pos, u = travel((A_C[0] + 40, A_C[1] + 20), A_D, 0, t, 10.45, 11.5)
-        draw_packet(main, glows, pos, col=TEAL, scale=0.9)
-    if 11.5 <= t < 11.8:
-        draw_packet(main, glows, A_D, col=TEAL, scale=0.9 * (1 - ss(11.5, 11.8, t)) + 0.2, a=1 - ss(11.5, 11.8, t))
+        f = ss(10.2, 10.5, t)
+        draw_packet(main, glows, (A_CL[0] - L, A_CL[1]), col=TEAL, scale=0.95 * (1 - f) + 0.25, a=1 - f)
+    if 10.45 <= t < 11.4:
+        fly(A_CR, A_DT, 40, 10.45, 11.4, col=TEAL, scale=0.95, tr=False)
+    if 11.4 <= t < 11.7:
+        f = ss(11.4, 11.7, t)
+        draw_packet(main, glows, (A_DT[0] - L, A_DT[1]), col=TEAL, scale=0.95 * (1 - f) + 0.25, a=1 - f)
 
-    # resilience: second packet from the tiang is lost, retried, ACKed
-    p_start = (A_T[0], A_T[1] - 52)
-    if 12.9 <= t < 13.3:
-        f = eo(12.9, 13.3, t)
-        draw_packet(main, glows, p_start, scale=f, a=f)
-    if 13.3 <= t < 14.3:
-        pos, u = travel(p_start, A_R, 100, t, 13.3, 14.3)
-        lost = ss(0.55, 0.92, u)
-        col = mix(MINT, WARN, lost)
-        draw_packet(main, glows, (pos[0], pos[1] - 10 * lost), scale=1 - 0.4 * lost, col=col, a=1 - lost, glow=0.5)
-        if lost > 0.05:
-            for k in range(5):
-                an = TAU * k / 5 + 0.4
-                rr = 32 * lost
-                main.circle(pos[0] + rr * math.cos(an), pos[1] + rr * math.sin(an) - 10 * lost, 3.8, fill=rgba(WARN, 0.8 * (1 - lost)))
-    # retry marker (amber ring spinning around the sensor)
-    if 14.3 <= t < 15.0:
-        u = (t - 14.3) / 0.7
-        main.arc(A_T[0], A_T[1], 40, -90 + 360 * u, 160 + 360 * u, rgba(AMBER, 0.9 * math.sin(math.pi * u)), 5)
-    if 14.5 <= t < 14.8:
-        f = eo(14.5, 14.8, t)
-        draw_packet(main, glows, p_start, scale=f, a=f)
-    if 14.8 <= t < 15.7:
-        pos, u = travel(p_start, A_R, 100, t, 14.8, 15.7)
+    # ---- paket hilang (contoh ilustrasi): pecah, serpihan oranye-amber, label
+    LOST_U = 0.5
+    T_BREAK = 14.55
+    LP = bez(P_START, A_R, 130, LOST_U)
+    if 13.1 <= t < 13.9:
+        f = eo(13.1, 13.7, t)
+        draw_packet(main, glows, PS, scale=f, a=f)
+    if 13.9 <= t < T_BREAK:
+        u = ss(13.9, T_BREAK, t) * LOST_U
+        warn = ss(0.25, LOST_U, u)
+        pos = bez(P_START, A_R, 130, u)
+        jit = math.sin(TAU * (t - 13.9) * 3.0) * 4 * warn
         for k in range(1, 4):
-            pk = bez(p_start, A_R, 100, max(u - 0.05 * k, 0))
-            draw_packet(main, glows, pk, scale=0.7 - 0.12 * k, a=0.35 / k, glow=0.0)
-        draw_packet(main, glows, pos)
-    if 15.7 <= t < 16.0:
-        draw_packet(main, glows, A_R, scale=1 - 0.5 * ss(15.7, 16.0, t), a=1 - ss(15.7, 16.0, t))
-    # ACK (white dot) relay -> tiang
-    if 15.7 <= t < 16.6:
-        pos, u = travel(A_R, (A_T[0] + 24, A_T[1] - 8), -150, t, 15.7, 16.5)
-        main.circle(pos[0], pos[1], 9, fill=rgba(WHITE))
-        glows.append((pos[0], pos[1], 15, WHITE, 0.30))
+            pk = bez(P_START, A_R, 130, max(u - 0.05 * k, 0))
+            draw_packet(main, glows, (pk[0] - L, pk[1]), scale=0.72 - 0.12 * k, a=0.38 / k, col=mix(MINT, LOSS, warn), glow=0.0)
+        draw_packet(main, glows, (pos[0] - L, pos[1] + jit), scale=1 - 0.12 * warn, col=mix(MINT, LOSS, warn), glow=0.6)
+    if T_BREAK <= t < 16.1:
+        e = t - T_BREAK
+        # cincin pecah
+        ur = min(e / 0.7, 1)
+        if ur < 1:
+            main.circle(LP[0] - L, LP[1], 22 + 100 * (1 - (1 - ur) ** 2), outline=rgba(LOSS, 0.8 * (1 - ur)), width=5)
+        glows.append((LP[0] - L, LP[1], 60, LOSS, 0.30 * (1 - ss(0, 0.9, e))))
+        rng = np.random.default_rng(23)
+        for k in range(12):
+            an = TAU * k / 12 + rng.uniform(-0.2, 0.2)
+            sp_ = rng.uniform(95, 190)
+            rot0, rotv = rng.uniform(0, TAU), rng.uniform(-6, 6)
+            sz = rng.uniform(15, 27)
+            ee = min(e, 1.5)
+            fade = 1 - ss(0.9, 1.5, e)
+            if fade <= 0.01:
+                continue
+            dist = sp_ * (1 - math.exp(-3.2 * ee)) / 3.2 * 3.3
+            x = LP[0] - L + dist * math.cos(an)
+            y = LP[1] + dist * math.sin(an) + 70 * ee * ee
+            pts = [(x + sz * math.cos(rot0 + rotv * ee + da) * f, y + sz * math.sin(rot0 + rotv * ee + da) * f)
+                   for da, f in ((0, 1.0), (2.1, 0.8), (3.5, 0.9), (4.9, 0.55))]
+            main.d.polygon([(px_ * S, py_ * S) for px_, py_ in pts], fill=rgba(mix(LOSS, AMBER, k / 11.0), 0.95 * fade))
+    # label paket hilang (alpha 1, muncul/hilang cepat)
+    if 14.5 <= t < 16.4:
+        lx, ly = LP[0] - L - 10, LP[1] + 195
+        wbox, hbox = 500, 142
+        main.rrect(lx - wbox / 2, ly - hbox / 2, lx + wbox / 2, ly + hbox / 2, 30, fill=rgba(hexc('#06263c'), .96), outline=rgba(LOSS), width=4)
+        main.text(lx, ly - 34, 'Paket hilang', 54, rgba(hexc('#ffc27d')))
+        main.text(lx, ly + 28, '(contoh ilustrasi)', 48, rgba(hexc('#ffd9ae')))
+        # tangkai kecil ke titik pecah
+        main.line([(lx, ly - hbox / 2), (lx, ly - hbox / 2 - 38)], rgba(LOSS), 4)
 
-    # ---- caption
+    # ---- kirim ulang
+    if 15.7 <= t < 16.5:
+        u = (t - 15.7) / 0.8
+        r0 = 50
+        main.arc(A_T[0] - L, A_T[1], r0, -90 + 360 * u, 170 + 360 * u, rgba(AMBER, 0.95 * math.sin(math.pi * u)), 7)
+    if 16.3 <= t < 16.8:
+        f = eo(16.3, 16.7, t)
+        draw_packet(main, glows, PS, scale=f, a=f)
+    if 16.8 <= t < 17.7:
+        fly(P_START, A_R, 130, 16.8, 17.7)
+    if 17.7 <= t < 18.0:
+        f = ss(17.7, 18.0, t)
+        draw_packet(main, glows, (A_R[0] - L, A_R[1]), scale=1 - 0.4 * f, a=1 - f)
+    # ACK (chip putih) relay -> tiang
+    if 17.8 <= t < 18.85:
+        u = ss(17.8, 18.8, t)
+        pos = bez((A_R[0], A_R[1] + 40), (A_T[0] + 40, A_T[1] - 20), -170, u)
+        x, y = pos[0] - L, pos[1]
+        main.rrect(x - 62, y - 31, x + 62, y + 31, 31, fill=rgba(WHITE), outline=rgba(MINT_L), width=4)
+        main.text(x, y - 2, 'ACK', 42, rgba(hexc('#0a5a42')))
+        glows.append((x, y, 34, WHITE, 0.28))
+
+    # ---- judul (alpha selalu 1; pergantian berupa potongan cepat)
     for (a0, a1, s_) in CAPS:
-        a = ss(a0, a0 + 0.35, t) * (1 - ss(a1 - 0.35, a1, t)) * out_a if t < T_FADE0 else 0
-        if a > 0.01:
-            dy = (1 - ss(a0, a0 + 0.45, t)) * 14
-            main.text(W / 2, 140 + dy, s_, 60, rgba(TXT, a))
-    # ---- labels
-    def label(x, y, s_, a):
-        if a > 0.01:
-            main.text(x, y, s_, 40, rgba(TXT, a * 0.95))
-    label(X_T, GROUND + 58, 'TIANG', ap['tiang'])
-    label(X_R, GROUND + 58, 'RELAY', ap['relay'])
-    label(X_S, GROUND + 58, 'SINK', ap['sink'])
-    label(X_C, 408 + 92, 'CLOUD', ap['cloud'])
-    label(X_D, GROUND + 58, 'DASHBOARD', ap['dash'])
-
-    # ---- pill strip
+        if a0 <= t < a1:
+            e = (t - a0) / 0.22 if a0 > 0 else 1.0
+            dy = (1 - ss(0, 1, e)) * 16
+            main.text(W / 2, 148 + dy + 3, s_, 66, rgba(hexc('#031826'), 0.55))
+            main.text(W / 2, 148 + dy, s_, 66, rgba(TXT))
+    # ---- strip pil
     geo = ST['pills']
-    ps = []
     for i, (name, t_on) in enumerate(PILLS):
-        lit = ss(t_on, t_on + 0.45, t) * (1 - ss(T_FADE0 + 0.2, T_FADE1, t))
+        base = ss(t_on, t_on + 0.45, t) if t_on > 0 else 1.0
+        lit = base * (reset if i > 0 else 1.0)
         x0, x1 = geo[i]
-        fill = mix(hexc('#0a2e48'), hexc('#1d7c66'), lit)
-        outl = mix(hexc('#1d5a75'), MINT, lit)
-        tc = mix(hexc('#7aa3b5'), WHITE, lit)
-        main.rrect(x0, PILL_Y - 40, x1, PILL_Y + 40, 40, fill=rgba(fill, 0.9), outline=rgba(outl), width=3)
-        main.text((x0 + x1) / 2, PILL_Y - 2, name, 38, rgba(tc))
+        fill = mix(hexc('#0a2a44'), hexc('#168270'), lit)
+        outl = mix(hexc('#2a7390'), MINT, lit)
+        tc = mix(hexc('#b4d2de'), WHITE, lit)
+        main.rrect(x0, PILL_Y - PILL_H / 2, x1, PILL_Y + PILL_H / 2, PILL_H / 2, fill=rgba(fill), outline=rgba(outl), width=4)
+        main.text((x0 + x1) / 2, PILL_Y - 3, name, 52, rgba(tc))
         if lit > 0.01:
-            glows.append(((x0 + x1) / 2, PILL_Y, 55, MINT, 0.12 * lit))
+            glows.append(((x0 + x1) / 2, PILL_Y, 70, MINT, 0.10 * lit))
         if i < len(PILLS) - 1:
             nx = geo[i + 1][0]
             mx = (x1 + nx) / 2
-            ca = mix(hexc('#2b6784'), MINT, ss(0, 1, lit) * 0.9)
-            main.line([(mx - 9, PILL_Y - 14), (mx + 5, PILL_Y), (mx - 9, PILL_Y + 14)], rgba(ca), 5)
+            ca = mix(hexc('#3c7f9a'), MINT, lit * 0.9)
+            main.line([(mx - 11, PILL_Y - 18), (mx + 7, PILL_Y), (mx - 11, PILL_Y + 18)], rgba(ca), 6)
 
-    # composite supersampled layer
     small = main.im.resize((W, H), Image.BOX)
     arr = np.asarray(small).astype(np.float32) / 255.0
     a = arr[..., 3:4]
-    # glows beneath shapes' brightest parts: add to background first
     for (x, y, sig, col, amp) in glows:
         if amp > 0.003:
             glow_add(img, x, y, sig, col, amp)
     img = img * (1 - a) + arr[..., :3] * a
-    # (re-add small glow on top for packets' bloom)
     top_gl = np.zeros_like(img)
     for (x, y, sig, col, amp) in glows:
         if amp > 0.003 and sig <= 40:
             glow_add(top_gl, x, y, sig, col, amp * 0.25)
     img += top_gl
+    img = brand_overlay(img, t)
     return np.clip(img * 255.0 + 0.5 + ST['noise'], 0, 255).astype(np.uint8)
+
+
+def load_mark():
+    if 'mark' not in ST:
+        ST['mark'] = Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'aurora-mark.png')).convert('RGBA')
+    return ST['mark']
+
+
+def brand_overlay(img, t):
+    """Overlay gelap + lockup penutup (19.4-21.6), watermark logo + label kejujuran permanen di pojok."""
+    dim = ss(19.4, 19.6, t) * (1 - ss(21.0, 21.35, t)) * 0.93
+    if dim > 0.001:
+        img = img * (1 - dim) + np.array(hexc('#03090f'), np.float32)[None, None, :] / 255.0 * dim
+    top = Lay(0, 0, W, H, k=1, lwb=1.0)
+    mk = load_mark()
+    # posisi mark: tengah (lockup) -> pojok kiri atas (watermark)
+    m = 1 - ss(19.4, 19.8, t) * (1 - ss(21.0, 21.6, t))
+    w_c, cx_c, cy_c = 300.0, W / 2, 395.0
+    w_s, cx_s, cy_s = 140.0, 40 + 70.0, 34 + 44.5
+    mw = w_c + (w_s - w_c) * m
+    mcx = cx_c + (cx_s - cx_c) * m
+    mcy = cy_c + (cy_s - cy_c) * m
+    mh = mw * mk.size[1] / mk.size[0]
+    mi = mk.resize((int(round(mw * S)), int(round(mh * S))), Image.LANCZOS)
+    top.im.alpha_composite(mi, dest=(int(round((mcx - mw / 2) * S)), int(round((mcy - mh / 2) * S))))
+    # wordmark AURORA (putih, tracking lebar) hanya pada lockup
+    wa = ss(19.7, 19.9, t) * (1 - ss(20.95, 21.3, t))
+    if wa > 0.01:
+        f = font(104)
+        word = 'AURORA'
+        track = 30 * S
+        widths = [f.getlength(ch) for ch in word]
+        tot = sum(widths) + track * (len(word) - 1)
+        x = W * S / 2 - tot / 2
+        for ch, wd in zip(word, widths):
+            top.d.text((x, 640 * S), ch, font=f, fill=rgba(WHITE, wa), anchor='lm')
+            x += wd + track
+    # label kejujuran permanen
+    lab = 'Ilustrasi alur satu paket'
+    lw_ = top.d.textlength(lab, font=font(38)) / S
+    x0 = 40 + 140 + 26
+    top.rrect(x0, 34, x0 + lw_ + 52, 104, 35, fill=rgba(hexc('#052136'), .85), outline=rgba(RIM_DIM), width=2.5)
+    top.text(x0 + 26 + lw_ / 2, 69, lab, 38, rgba(hexc('#d3ece3')))
+    small = top.im.resize((W, H), Image.BOX)
+    arr = np.asarray(small).astype(np.float32) / 255.0
+    a = arr[..., 3:4]
+    return img * (1 - a) + arr[..., :3] * a
 
 
 def worker(fi):
@@ -529,8 +679,9 @@ if __name__ == '__main__':
     work = sys.argv[1]
     os.makedirs(work, exist_ok=True)
     if '--only-frame' in sys.argv:
-        k = int(sys.argv[sys.argv.index('--only-frame') + 1])
-        Image.fromarray(render(k)).save(os.path.join(work, f'lora_f{k:03d}.png'))
+        ks = sys.argv[sys.argv.index('--only-frame') + 1].split(',')
+        for k in ks:
+            Image.fromarray(render(int(k))).save(os.path.join(work, f'lora_f{int(k):03d}.png'))
         sys.exit(0)
     nf = NF
     if '--frames' in sys.argv:
@@ -539,7 +690,7 @@ if __name__ == '__main__':
     cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS),
            '-i', '-', '-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'gbrp', out]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    with Pool(16) as pool:
+    with Pool(18) as pool:
         for i, b in enumerate(pool.imap(worker, range(nf), chunksize=1)):
             p.stdin.write(b)
             if i % 30 == 0:

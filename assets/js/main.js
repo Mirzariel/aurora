@@ -223,7 +223,53 @@
     onReady: function () { if (heroEl) heroEl.classList.add("video-on"); },
     onFail: function () { if (heroEl) heroEl.classList.remove("video-on"); }
   });
-  setupVideo($("#journey-video"), $("[data-media='journey']"), { noun: "animasi" });
+  var stageEl = $(".journey-stage");
+  setupVideo($("#journey-video"), $("[data-media='journey']"), {
+    noun: "animasi",
+    onReady: function () { if (stageEl) stageEl.classList.add("video-on"); },
+    onFail: function () { if (stageEl) stageEl.classList.remove("video-on"); }
+  });
+
+  /* ---------- Lightbox ringan (gambar yang bisa diperbesar) ---------- */
+  var zoomLinks = $$("a[data-zoom]");
+  if (zoomLinks.length && typeof HTMLDialogElement === "function" && doc.createElement("dialog").showModal) {
+    var dlg = doc.createElement("dialog");
+    dlg.className = "lightbox";
+    dlg.setAttribute("aria-labelledby", "lb-cap");
+    dlg.innerHTML =
+      '<div class="lb-bar"><p class="lb-cap" id="lb-cap"></p>' +
+      '<button type="button" class="lb-close" aria-label="Tutup gambar yang diperbesar">Tutup &times;</button></div>' +
+      '<div class="lb-scroll" tabindex="0" role="group" aria-label="Gambar, dapat digulir"><img alt=""></div>';
+    doc.body.appendChild(dlg);
+    var lbImg = $("img", dlg), lbCap = $("#lb-cap", dlg), lbClose = $(".lb-close", dlg);
+    var lastFocus = null;
+    var openZoom = function (a) {
+      var thumb = $("img", a);
+      lastFocus = a;
+      lbImg.src = a.getAttribute("href");
+      lbImg.alt = thumb ? thumb.alt : "";
+      lbCap.textContent = a.getAttribute("data-title") || (thumb ? thumb.alt : "");
+      dlg.style.setProperty("--lb-w", (a.getAttribute("data-zoom-w") || "900") + "px");
+      root.classList.add("lb-open");
+      dlg.showModal();
+      lbClose.focus();
+    };
+    zoomLinks.forEach(function (a) {
+      a.setAttribute("role", "button");
+      a.setAttribute("aria-haspopup", "dialog");
+      a.addEventListener("click", function (e) { e.preventDefault(); openZoom(a); });
+      a.addEventListener("keydown", function (e) {
+        if (e.key === " ") { e.preventDefault(); openZoom(a); }
+      });
+    });
+    lbClose.addEventListener("click", function () { dlg.close(); });
+    dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener("close", function () {
+      root.classList.remove("lb-open");
+      lbImg.removeAttribute("src");
+      if (lastFocus) lastFocus.focus();
+    });
+  }
 
   /* ---------- Video YouTube: fasad. Tidak ada permintaan ke YouTube sebelum tombol ditekan. ---------- */
   var yt = $("[data-youtube-id]");

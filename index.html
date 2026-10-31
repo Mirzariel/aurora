@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AURORA — Lampu Jalan Tenaga Surya yang Bisa Melapor Sendiri</title>
 <meta name="description" content="AURORA: sistem monitoring PJU-TS pintar untuk daerah terpencil. Node di tiang mengirim data kondisinya lewat LoRa dan operator melihatnya di satu dashboard. Deteksi anomali masih tahap rancangan. Capstone A-06, DTETI 2026.">
-<meta name="theme-color" content="#051f33">
+<meta name="theme-color" content="#050b14">
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="id_ID">
@@ -30,28 +30,33 @@
 <!-- Sprite SVG lokal: logo mark + ikon -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
-    <linearGradient id="lg-sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#051f33"/><stop offset=".55" stop-color="#08304d"/><stop offset="1" stop-color="#0e4f78"/>
-    </linearGradient>
-    <linearGradient id="lg-rb" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0f6b5a" stop-opacity=".15"/><stop offset=".6" stop-color="#2f8f6f" stop-opacity=".85"/><stop offset="1" stop-color="#56c785"/>
-    </linearGradient>
-    <clipPath id="lg-clip"><circle cx="32" cy="32" r="31"/></clipPath>
     <linearGradient id="g-line" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#2f8f6f"/><stop offset="1" stop-color="#8ff0b8"/>
+      <stop offset="0" stop-color="#1aa7c4"/><stop offset="1" stop-color="#9af7cb"/>
     </linearGradient>
+    <!-- Logo mark AURORA: lengkung "A" dari empat lapisan cahaya -->
+    <clipPath id="mk-arch"><path d="M10 1025C200 800 420 480 600 220C700 80 760 8 830 8C910 8 980 60 1070 190C1220 420 1420 800 1630 1025C1550 1040 1450 1040 1330 1000C1180 950 1000 790 880 690C830 655 780 650 730 665C640 690 520 800 400 930C320 1010 200 1040 10 1025Z"/></clipPath>
+    <linearGradient id="mk-g1" x1=".35" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#0a5ca6"/><stop offset=".45" stop-color="#1aa7c4"/><stop offset=".75" stop-color="#4fe0b3"/><stop offset="1" stop-color="#9af7cb"/></linearGradient>
+    <linearGradient id="mk-g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#031a35"/><stop offset=".5" stop-color="#06335a"/><stop offset="1" stop-color="#0b6f78"/></linearGradient>
+    <linearGradient id="mk-g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b7f8e"/><stop offset=".55" stop-color="#2cc7a8"/><stop offset="1" stop-color="#7cf0bd"/></linearGradient>
+    <linearGradient id="mk-g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a4a4f"/><stop offset=".6" stop-color="#1fa77f"/><stop offset="1" stop-color="#58e08e"/></linearGradient>
+    <!-- Warna anggota tim = warna lapisan -->
+    <linearGradient id="tg-1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a86d8"/><stop offset="1" stop-color="#0a5ca6"/></linearGradient>
+    <linearGradient id="tg-2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd0e0"/><stop offset="1" stop-color="#1aa7c4"/></linearGradient>
+    <linearGradient id="tg-3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fe0b3"/><stop offset="1" stop-color="#2cc7a8"/></linearGradient>
+    <linearGradient id="tg-4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c4fbe0"/><stop offset="1" stop-color="#9af7cb"/></linearGradient>
   </defs>
-  <symbol id="logo-mark" viewBox="0 0 64 64">
-    <g clip-path="url(#lg-clip)">
-      <rect width="64" height="64" fill="url(#lg-sky)"/>
-      <path d="M-4 38C8 20 20 42 32 26S54 12 68 26V44C54 34 46 52 34 44S12 56-4 48Z" fill="url(#lg-rb)" opacity=".55"/>
-      <path d="M-4 46C10 30 22 52 34 36S54 28 68 40V58C54 50 46 64 34 58S12 66-4 58Z" fill="url(#lg-rb)"/>
-      <path d="M14 20V38M22 16V36M30 14V34M38 14V32M46 16V30" stroke="#56c785" stroke-opacity=".28" stroke-width="1.4" stroke-linecap="round"/>
-      <circle cx="12" cy="12" r=".9" fill="#e8fff3"/><circle cx="50" cy="10" r=".7" fill="#e8fff3"/>
-      <circle cx="55" cy="22" r=".6" fill="#bff3d6"/><circle cx="22" cy="7" r=".6" fill="#bff3d6"/>
+  <symbol id="logo-mark" viewBox="0 0 1640 1040">
+    <g clip-path="url(#mk-arch)">
+      <rect width="1640" height="1040" fill="url(#mk-g1)"/>
+      <path d="M300 760C420 520 560 300 700 270C800 250 900 330 1000 470C1130 650 1260 850 1420 1040H700Z" fill="url(#mk-g2)"/>
+      <path d="M10 1040C180 820 330 560 560 430C700 350 790 470 930 600C1050 710 1180 840 1330 1040Z" fill="url(#mk-g3)" opacity=".92"/>
+      <path d="M120 1040C260 860 380 690 560 600C690 540 780 600 900 700C1000 790 1120 920 1250 1040Z" fill="url(#mk-g4)"/>
     </g>
-    <circle cx="32" cy="32" r="31" fill="none" stroke="#56c785" stroke-opacity=".5"/>
   </symbol>
+  <symbol id="mk-l1" viewBox="0 0 1640 1040"><g clip-path="url(#mk-arch)"><rect width="1640" height="1040" fill="url(#tg-1)"/></g></symbol>
+  <symbol id="mk-l2" viewBox="0 0 1640 1040"><g clip-path="url(#mk-arch)"><path d="M300 760C420 520 560 300 700 270C800 250 900 330 1000 470C1130 650 1260 850 1420 1040H700Z" fill="url(#tg-2)"/></g></symbol>
+  <symbol id="mk-l3" viewBox="0 0 1640 1040"><g clip-path="url(#mk-arch)"><path d="M10 1040C180 820 330 560 560 430C700 350 790 470 930 600C1050 710 1180 840 1330 1040Z" fill="url(#tg-3)"/></g></symbol>
+  <symbol id="mk-l4" viewBox="0 0 1640 1040"><g clip-path="url(#mk-arch)"><path d="M120 1040C260 860 380 690 560 600C690 540 780 600 900 700C1000 790 1120 920 1250 1040Z" fill="url(#tg-4)"/></g></symbol>
   <symbol id="i-sense" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></g></symbol>
   <symbol id="i-chip" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M9.5 3v3.5M14.5 3v3.5M9.5 17.5V21M14.5 17.5V21M3 9.5h3.5M3 14.5h3.5M17.5 9.5H21M17.5 14.5H21"/><rect x="10" y="10" width="4" height="4" rx=".6"/></g></symbol>
   <symbol id="i-radio" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></g></symbol>
@@ -63,6 +68,9 @@
   <symbol id="i-road" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 21M16 3l4 18M12 4v3M12 10.5v3M12 17v3"/></g></symbol>
   <symbol id="i-signal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-3M9 20v-7M14 20V9M19 20V4" opacity=".9"/><path d="M3 3l18 18" stroke-opacity=".0"/></g></symbol>
   <symbol id="i-wrench" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6.5a4 4 0 0 0 4.6 4.8L10 20.4a2.3 2.3 0 0 1-3.3-3.3l9.1-9.1a4 4 0 0 1-1.3-1.5z"/><path d="M14.7 4.3a4 4 0 0 1 5 5"/></g></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.9 10 4 4 0 0 1 17.5 18z"/></g></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M8 20.5h8M12 17v3.5M6.5 13l3-3.5 3 2.5 3.5-4.5"/></g></symbol>
+  <symbol id="i-zoom" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5M10.5 8v5M8 10.5h5"/></g></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4.5h3.4v15H7zM13.6 4.5H17v15h-3.4z"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4.5v15l12.5-7.5z"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></g></symbol>
@@ -72,7 +80,7 @@
   <div class="wrap">
     <nav class="nav" aria-label="Navigasi utama">
       <a class="brand" href="#top" aria-label="AURORA, kembali ke atas">
-        <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><use href="#logo-mark"/></svg>
+        <svg class="brand-mark" viewBox="0 0 1640 1040" aria-hidden="true" focusable="false"><use href="#logo-mark"/></svg>
         <span class="brand-name">AURORA</span>
       </a>
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-list" aria-label="Buka menu"><span></span></button>
@@ -97,17 +105,17 @@
     <svg class="aurora-art" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice" focusable="false">
       <defs>
         <linearGradient id="h-rib" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#0f6b5a" stop-opacity="0"/>
-          <stop offset=".5" stop-color="#2f8f6f" stop-opacity=".5"/>
-          <stop offset="1" stop-color="#56c785" stop-opacity=".92"/>
+          <stop offset="0" stop-color="#0a5ca6" stop-opacity="0"/>
+          <stop offset=".5" stop-color="#1aa7c4" stop-opacity=".5"/>
+          <stop offset="1" stop-color="#4fe0b3" stop-opacity=".92"/>
         </linearGradient>
         <linearGradient id="h-rib2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#0f6b5a" stop-opacity="0"/>
-          <stop offset=".55" stop-color="#4aa37f" stop-opacity=".42"/>
-          <stop offset="1" stop-color="#8ff0b8" stop-opacity=".85"/>
+          <stop offset="0" stop-color="#0a5ca6" stop-opacity="0"/>
+          <stop offset=".55" stop-color="#2cc7a8" stop-opacity=".42"/>
+          <stop offset="1" stop-color="#9af7cb" stop-opacity=".85"/>
         </linearGradient>
         <pattern id="h-stripes" width="22" height="10" patternUnits="userSpaceOnUse">
-          <rect width="2.5" height="10" fill="#d9ffe9"/><rect x="11" width="1.5" height="10" fill="#d9ffe9" opacity=".6"/>
+          <rect width="2.5" height="10" fill="#dcfff0"/><rect x="11" width="1.5" height="10" fill="#dcfff0" opacity=".6"/>
         </pattern>
         <filter id="h-blur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="14"/></filter>
         <filter id="h-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3"/></filter>
@@ -131,7 +139,7 @@
 
   <svg class="hero-land" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
     <defs>
-      <radialGradient id="h-lamp"><stop offset="0" stop-color="#f4ffe8" stop-opacity=".9"/><stop offset=".35" stop-color="#bff3d6" stop-opacity=".25"/><stop offset="1" stop-color="#bff3d6" stop-opacity="0"/></radialGradient>
+      <radialGradient id="h-lamp"><stop offset="0" stop-color="#f2fffb" stop-opacity=".9"/><stop offset=".35" stop-color="#c4f8de" stop-opacity=".25"/><stop offset="1" stop-color="#c4f8de" stop-opacity="0"/></radialGradient>
     </defs>
     <path d="M0 210C220 150 420 190 640 170S1040 120 1280 165 1520 170 1600 150V300H0Z" fill="#05243a" opacity=".85"/>
     <path d="M0 250C240 215 460 245 720 228S1160 205 1380 235 1560 240 1600 228V300H0Z" fill="#03131f"/>
@@ -141,8 +149,8 @@
       <g transform="translate(1500 124)"><rect x="-2.5" y="0" width="5" height="120"/><path d="M-2.5 6 40 -2l0 7-42.5 10z"/><path d="M-30 24l22 -6 6 14-22 6z" transform="rotate(-8)"/></g>
     </g>
     <circle cx="1052" cy="122" r="30" fill="url(#h-lamp)"/><circle cx="1312" cy="96" r="30" fill="url(#h-lamp)"/><circle cx="1542" cy="128" r="30" fill="url(#h-lamp)"/>
-    <g fill="#f4ffe8"><circle cx="1051" cy="122" r="3"/><circle cx="1311" cy="96" r="3"/><circle cx="1541" cy="128" r="3"/></g>
-    <g fill="none" stroke="#8ff0b8" stroke-width="1.5" stroke-linecap="round" opacity=".5">
+    <g fill="#f2fffb"><circle cx="1051" cy="122" r="3"/><circle cx="1311" cy="96" r="3"/><circle cx="1541" cy="128" r="3"/></g>
+    <g fill="none" stroke="#9af7cb" stroke-width="1.5" stroke-linecap="round" opacity=".5">
       <path class="signal-path" d="M1052 116C1120 50 1220 50 1312 90"/>
       <path class="signal-path" d="M1312 90C1390 40 1470 60 1542 122"/>
     </g>
@@ -151,6 +159,7 @@
 
   <div class="wrap hero-inner">
     <p class="hero-kicker"><i aria-hidden="true"></i> Capstone A-06 · DTETI 2026</p>
+    <svg class="hero-mark" viewBox="0 0 1640 1040" aria-hidden="true" focusable="false"><use href="#logo-mark"/></svg>
     <h1 class="wordmark" id="hero-title">AURORA</h1>
     <p class="tagline">Lampu jalan tenaga surya yang bisa melapor sendiri.</p>
     <p class="hero-sub">Sistem monitoring PJU-TS untuk daerah terpencil. Node di tiang mengirim data kondisinya lewat LoRa, dan operator melihatnya di satu dashboard. Deteksi anomali sedang dirancang.</p>
@@ -162,7 +171,7 @@
 
   <div class="hero-strip" data-media="hero">
     <div class="wrap">
-      <p class="strip-text"><b>A-06</b> · Capstone DTETI 2026 · C251 desain &rarr; C501 implementasi, eksperimen, validasi</p>
+      <p class="strip-text"><svg class="strip-mark" viewBox="0 0 1640 1040" aria-hidden="true" focusable="false"><use href="#logo-mark"/></svg><b>A-06</b> · Capstone DTETI 2026 · C251 desain &rarr; C501 implementasi, eksperimen, validasi</p>
       <button class="media-toggle" type="button" data-media-toggle hidden data-state="playing"><svg class="i-pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="i-play" aria-hidden="true"><use href="#i-play"/></svg><span>Jeda animasi latar</span></button>
     </div>
   </div>
@@ -171,11 +180,11 @@
 <!-- 2. MASALAH -> GAGASAN -->
 <section class="section glow-left" id="gagasan" aria-labelledby="gagasan-title">
   <div class="wrap">
+    <p class="eyebrow reveal">01 · Masalah dan gagasan</p>
+    <h2 class="title reveal" id="gagasan-title">Lampu jalan yang bermasalah <em>tidak punya cara untuk bilang.</em></h2>
     <div class="split">
       <div class="reveal">
-        <p class="eyebrow">01 · Masalah dan gagasan</p>
-        <h2 class="title" id="gagasan-title">Lampu jalan yang bermasalah <em>tidak punya cara untuk bilang.</em></h2>
-        <div class="prose" style="margin-top:26px">
+        <div class="prose">
           <p>PJU-TS di daerah terpencil tersebar di ruas jalan yang panjang, sering tanpa sinyal seluler yang bisa diandalkan di tiap tiang. Panel yang meredup, baterai yang melemah, lampu atau beban yang janggal, suhu yang tidak wajar: semuanya meninggalkan jejak di data, tetapi data itu tidak punya jalan keluar.</p>
           <p><strong>AURORA dirancang memberi tiang dua kemampuan:</strong> menilai kondisi operasinya sendiri, dan mengabarkan hal yang perlu perhatian lewat jalur radio yang tidak bergantung pada seluler di setiap tiang.</p>
         </div>
@@ -236,9 +245,15 @@
 </section>
 
 <!-- Pemisah foto 1 -->
-<div class="band" data-parallax>
+<div class="band band-senja" id="band-senja" data-parallax>
   <img class="band-img" src="assets/img/senja-900.webp" srcset="assets/img/senja-900.webp 900w, assets/img/senja-2400.webp 2400w" sizes="100vw" width="2400" height="1818" loading="lazy" decoding="async" alt="Siluet lampu jalan melengkung menyala di langit senja berawan.">
-  <blockquote class="reveal long">Make distributed solar street lights able to understand their own operating condition and reliably communicate when something needs attention.<cite>Misi AURORA</cite></blockquote>
+  <div class="band-inner">
+    <blockquote class="reveal">
+      <p class="q-en" lang="en">Make distributed solar street lights able to understand their own operating condition and reliably communicate when something needs attention.</p>
+      <p class="q-id">Buat lampu jalan tenaga surya yang tersebar mampu memahami kondisi operasinya sendiri dan berkomunikasi dengan andal saat ada yang perlu perhatian.</p>
+      <cite>Misi AURORA</cite>
+    </blockquote>
+  </div>
 </div>
 
 <!-- 3. CARA KERJA -->
@@ -248,22 +263,22 @@
     <h2 class="title reveal" id="arsitektur-title">Dari tiang sampai layar operator.</h2>
     <p class="lede reveal">Sensor di tiang &rarr; pemrosesan lokal &rarr; LoRa dengan relay &rarr; sink lokal &rarr; backend dan database &rarr; dashboard. Tiap lapisan punya satu tugas.</p>
 
-    <figure class="journey reveal" data-media="journey">
+    <figure class="journey reveal" id="alur-paket" data-media="journey">
       <div class="frame">
         <div class="journey-stage">
           <svg viewBox="0 0 1280 720" role="img" aria-label="Diagram alur paket: tiang, relay, sink, cloud, dashboard" focusable="false">
             <defs>
-              <linearGradient id="j-glow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f8f6f"/><stop offset="1" stop-color="#8ff0b8"/></linearGradient>
-              <radialGradient id="j-node" cx=".4" cy=".3"><stop offset="0" stop-color="#0e4f78"/><stop offset="1" stop-color="#051f33"/></radialGradient>
+              <linearGradient id="j-glow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1aa7c4"/><stop offset="1" stop-color="#9af7cb"/></linearGradient>
+              <radialGradient id="j-node" cx=".4" cy=".3"><stop offset="0" stop-color="#0b3a5e"/><stop offset="1" stop-color="#07111d"/></radialGradient>
             </defs>
-            <g fill="#e8fff3" opacity=".7"><circle cx="120" cy="90" r="2"/><circle cx="420" cy="60" r="1.6"/><circle cx="760" cy="110" r="2"/><circle cx="1100" cy="70" r="1.8"/><circle cx="980" cy="150" r="1.4"/><circle cx="260" cy="170" r="1.4"/></g>
+            <g fill="#eafff6" opacity=".7"><circle cx="120" cy="90" r="2"/><circle cx="420" cy="60" r="1.6"/><circle cx="760" cy="110" r="2"/><circle cx="1100" cy="70" r="1.8"/><circle cx="980" cy="150" r="1.4"/><circle cx="260" cy="170" r="1.4"/></g>
             <path class="signal-path" d="M170 480C280 480 330 320 440 320S600 460 710 460 850 290 940 290 1030 480 1120 480" fill="none" stroke="url(#j-glow)" stroke-width="4" stroke-linecap="round"/>
-            <g id="j-nodes" stroke="#56c785" stroke-width="3" fill="url(#j-node)">
+            <g id="j-nodes" stroke="#4fe0b3" stroke-width="3" fill="url(#j-node)">
               <circle cx="170" cy="480" r="46"/><circle cx="440" cy="320" r="46"/><circle cx="710" cy="460" r="46"/><circle cx="940" cy="290" r="46"/><circle cx="1120" cy="480" r="46"/>
             </g>
-            <g fill="none" stroke="#8ff0b8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+            <g fill="none" stroke="#9af7cb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
               <path d="M170 500V462M156 462h28M170 462V452" /><path d="M434 470"/>
-              <path d="M424 332a22 22 0 0 1 32 0M432 322a12 12 0 0 1 16 0"/><circle cx="440" cy="338" r="3" fill="#8ff0b8"/>
+              <path d="M424 332a22 22 0 0 1 32 0M432 322a12 12 0 0 1 16 0"/><circle cx="440" cy="338" r="3" fill="#9af7cb"/>
               <rect x="692" y="448" width="36" height="24" rx="4"/><path d="M700 448v-8M720 448v-8"/>
               <path d="M920 300a14 14 0 0 1 4-26 20 20 0 0 1 38 4 12 12 0 0 1 4 22z"/>
               <rect x="1098" y="462" width="44" height="30" rx="4"/><path d="M1108 482l8-8 8 6 10-12"/>
@@ -274,8 +289,8 @@
               <text class="fb-label" x="710" y="548" font-size="38">Sink</text><text class="fb-sub" x="710" y="586" font-size="26">GSM + microSD</text>
               <text class="fb-label" x="940" y="378" font-size="38">Cloud</text><text class="fb-sub" x="940" y="416" font-size="26">database</text>
               <text class="fb-label" x="1120" y="568" font-size="38">Dashboard</text><text class="fb-sub" x="1120" y="606" font-size="26">operator</text>
-              <text class="fb-sub" x="306" y="360" font-size="24" fill="#8ff0b8">LoRa 433 MHz (belum diuji)</text>
-              <text class="fb-sub" x="826" y="372" font-size="24" fill="#8ff0b8">HTTPS</text>
+              <text class="fb-sub" x="250" y="528" font-size="24" fill="#9af7cb" text-anchor="start">LoRa 433 MHz (belum diuji)</text>
+              <text class="fb-sub" x="826" y="372" font-size="24" fill="#9af7cb">HTTPS</text>
             </g>
           </svg>
           <video id="journey-video" muted loop playsinline preload="metadata" poster="assets/video/lora-journey-poster.jpg" aria-label="Ilustrasi alur satu paket LoRa dari tiang melalui relay, sink, cloud, sampai dashboard. Bukan rekaman pengujian.">
@@ -283,14 +298,73 @@
             <source src="assets/video/lora-journey.mp4" type="video/mp4">
           </video>
         </div>
-        <div class="journey-bar">
+      </div>
+      <div class="journey-bar">
           <figcaption style="margin:0">Ilustrasi alur satu paket, bukan rekaman pengujian. Relay baru terbukti lewat emulasi, dan kirim ulang terukur di bench hanya pada link langsung Pusat–Tiang. Relay lewat radio nyata menunggu papan ketiga.</figcaption>
           <button class="media-toggle" type="button" data-media-toggle hidden data-state="playing"><svg class="i-pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="i-play" aria-hidden="true"><use href="#i-play"/></svg><span>Jeda animasi</span></button>
-        </div>
       </div>
     </figure>
 
-    <div class="arch-grid arch-solo">
+    <div class="arch-grid">
+      <figure class="arch-fig reveal" id="diagram">
+        <svg class="arch-svg" viewBox="0 0 560 900" role="img" aria-labelledby="ad-t ad-d" focusable="false">
+          <title id="ad-t">Diagram arsitektur AURORA (rancangan)</title>
+          <desc id="ad-d">Aliran data dari atas ke bawah: Tiang atau Edge Node (ESP32 dan sensor, rancangan), radio LoRa 433 MHz modul E32-433T30D, Relay (emulasi saja), radio LoRa lagi, Sink (ESP32, GSM SIM800L, microSD), lewat GSM dan HTTPS ke Cloud (backend dan database), lalu dibaca Dashboard operator. Catatan: PCB Pusat atau Relay memakai dua baterai 18650 (2S), BMS, IP2326, dan buck. Uji bench terdahulu memakai modul 900 MHz.</desc>
+          <rect class="ad-chip" x="1" y="1" width="408" height="40" rx="20"/>
+          <text class="ad-chip-t" x="205" y="28" text-anchor="middle">Rancangan · relay baru emulasi</text>
+
+          <g class="ad-links" fill="none" stroke-width="3" stroke-linecap="round">
+            <path class="signal-path" d="M52 148V208" stroke="#2a86d8"/>
+            <path class="signal-path" d="M52 296V356" stroke="#1aa7c4"/>
+            <path class="signal-path" d="M52 472V532" stroke="#2cc7a8"/>
+            <path class="signal-path" d="M52 620V680" stroke="#4fe0b3"/>
+          </g>
+          <g class="ad-chev" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M43 192l9 10 9-10" stroke="#2a86d8"/><path d="M43 340l9 10 9-10" stroke="#1aa7c4"/><path d="M43 516l9 10 9-10" stroke="#2cc7a8"/><path d="M43 664l9 10 9-10" stroke="#4fe0b3"/>
+          </g>
+          <g class="ad-lt">
+            <text x="86" y="185">LoRa 433 MHz · E32-433T30D</text>
+            <text x="86" y="333">LoRa 433 MHz</text>
+            <text x="86" y="509">GSM · HTTPS (SIM800L)</text>
+            <text x="86" y="657">database dibaca dashboard</text>
+          </g>
+
+          <g class="ad-card">
+            <rect x="1" y="60" width="558" height="88" rx="18"/>
+            <circle cx="52" cy="104" r="28" stroke="#2a86d8"/><use class="ad-ic" href="#i-lamp" x="37" y="89" width="30" height="30"/>
+            <text class="ad-h" x="100" y="96">Tiang / Edge Node</text><text class="ad-s" x="100" y="128">ESP32 + sensor</text>
+            <rect class="ad-tag" x="410" y="74" width="134" height="32" rx="16"/><text class="ad-tag-t" x="477" y="96" text-anchor="middle">rancangan</text>
+          </g>
+          <g class="ad-card">
+            <rect x="1" y="208" width="558" height="88" rx="18"/>
+            <circle cx="52" cy="252" r="28" stroke="#1aa7c4"/><use class="ad-ic" href="#i-radio" x="37" y="237" width="30" height="30"/>
+            <text class="ad-h" x="100" y="244">Relay</text><text class="ad-s" x="100" y="276">meneruskan paket</text>
+            <rect class="ad-tag emu" x="420" y="222" width="124" height="32" rx="16"/><text class="ad-tag-t emu" x="482" y="244" text-anchor="middle">emulasi</text>
+          </g>
+          <g class="ad-card">
+            <rect x="1" y="356" width="558" height="116" rx="18"/>
+            <circle cx="52" cy="414" r="28" stroke="#2cc7a8"/><use class="ad-ic" href="#i-chip" x="37" y="399" width="30" height="30"/>
+            <text class="ad-h" x="100" y="392">Sink / Gateway</text><text class="ad-s" x="100" y="424">ESP32 + GSM SIM800L</text><text class="ad-s" x="100" y="452">+ kartu microSD</text>
+          </g>
+          <g class="ad-card">
+            <rect x="1" y="532" width="558" height="88" rx="18"/>
+            <circle cx="52" cy="576" r="28" stroke="#4fe0b3"/><use class="ad-ic" href="#i-cloud" x="37" y="561" width="30" height="30"/>
+            <text class="ad-h" x="100" y="568">Cloud</text><text class="ad-s" x="100" y="600">backend + database</text>
+          </g>
+          <g class="ad-card">
+            <rect x="1" y="680" width="558" height="88" rx="18"/>
+            <circle cx="52" cy="724" r="28" stroke="#9af7cb"/><use class="ad-ic" href="#i-monitor" x="37" y="709" width="30" height="30"/>
+            <text class="ad-h" x="100" y="716">Dashboard</text><text class="ad-s" x="100" y="748">operator</text>
+          </g>
+
+          <rect class="ad-note" x="1" y="794" width="558" height="104" rx="16"/>
+          <g class="ad-nt">
+            <text x="20" y="824">PCB Pusat/Relay: 2 × 18650 (2S)</text>
+            <text x="20" y="852">+ BMS + IP2326 + buck</text>
+            <text x="20" y="882" class="dim">Uji bench terdahulu: modul 900 MHz.</text>
+          </g>
+        </svg>
+      </figure>
       <ol class="layers reveal">
         <li><h3>Edge Node di tiang</h3><p>ESP32 dirancang membaca sensor tegangan, arus, suhu, dan cahaya, lalu memprosesnya di tempat sebelum mengirim.</p></li>
         <li><h3>Radio LoRa dan relay</h3><p>Modul Ebyte <code>E32-433T30D</code> (433 MHz). Uji bench terdahulu memakai modul 900 MHz; di 433 MHz belum ada uji bench. Paket dirancang bisa lewat relay, dengan ACK dan pengulangan kirim.</p></li>
@@ -321,33 +395,42 @@
     <p class="eyebrow reveal">03 · Tim</p>
     <h2 class="title reveal" id="tim-title">Empat orang, masing-masing memegang satu misi.</h2>
     <p class="lede reveal">Setiap misi punya satu pertanyaan yang harus bisa dijawab dengan bukti.</p>
+    <div class="mark-explain reveal">
+      <ol class="mark-layers" aria-label="Empat lapisan logo AURORA, masing-masing mewakili satu anggota tim">
+        <li class="tc-1"><svg viewBox="0 0 1640 1040" aria-hidden="true" focusable="false"><use href="#mk-l1"/></svg><b>01</b><span>Grego</span></li>
+        <li class="tc-2"><svg viewBox="0 0 1640 1040" aria-hidden="true" focusable="false"><use href="#mk-l2"/></svg><b>02</b><span>Iffat</span></li>
+        <li class="tc-3"><svg viewBox="0 0 1640 1040" aria-hidden="true" focusable="false"><use href="#mk-l3"/></svg><b>03</b><span>Mirzariel</span></li>
+        <li class="tc-4"><svg viewBox="0 0 1640 1040" aria-hidden="true" focusable="false"><use href="#mk-l4"/></svg><b>04</b><span>Qiara</span></li>
+      </ol>
+      <p>Empat lapisan cahaya melambangkan empat anggota tim yang bekerja bersama membangun sistem AURORA.</p>
+    </div>
     <ol class="team-list">
-      <li class="member reveal">
-        <span class="m-num" aria-hidden="true">01</span>
+      <li class="member tc-1 reveal">
+        <span class="m-num" aria-hidden="true"><svg class="m-wave" viewBox="0 0 1640 1040" focusable="false"><use href="#mk-l1"/></svg>01</span>
         <div><h3 class="m-name">Grego</h3><p class="m-role">Hardware &amp; Sensing</p></div>
         <div class="m-mission-wrap">
           <p class="m-mission">&ldquo;Make the node trustworthy&rdquo;</p>
           <p class="m-q"><b>Pertanyaan yang harus terjawab</b><span>Apakah angka dari node ini boleh dipercaya?</span></p>
         </div>
       </li>
-      <li class="member reveal">
-        <span class="m-num" aria-hidden="true">02</span>
+      <li class="member tc-2 reveal">
+        <span class="m-num" aria-hidden="true"><svg class="m-wave" viewBox="0 0 1640 1040" focusable="false"><use href="#mk-l2"/></svg>02</span>
         <div><h3 class="m-name">Iffat</h3><p class="m-role">Condition Intelligence</p></div>
         <div class="m-mission-wrap">
           <p class="m-mission">&ldquo;Know when the system is behaving abnormally&rdquo;</p>
           <p class="m-q"><b>Pertanyaan yang harus terjawab</b><span>Kapan kondisi ini mulai menyimpang dari yang wajar untuk keadaan sekarang?</span></p>
         </div>
       </li>
-      <li class="member reveal">
-        <span class="m-num" aria-hidden="true">03</span>
+      <li class="member tc-3 reveal">
+        <span class="m-num" aria-hidden="true"><svg class="m-wave" viewBox="0 0 1640 1040" focusable="false"><use href="#mk-l3"/></svg>03</span>
         <div><h3 class="m-name">Mirzariel <span style="font-weight:400;color:var(--muted)">(Eril)</span></h3><p class="m-role">Resilient Communication</p></div>
         <div class="m-mission-wrap">
           <p class="m-mission">&ldquo;Make sure information survives the journey&rdquo;</p>
           <p class="m-q"><b>Pertanyaan yang harus terjawab</b><span>Kalau sebuah paket hilang di jalan, bagaimana kita tahu dan memulihkannya?</span></p>
         </div>
       </li>
-      <li class="member reveal">
-        <span class="m-num" aria-hidden="true">04</span>
+      <li class="member tc-4 reveal">
+        <span class="m-num" aria-hidden="true"><svg class="m-wave" viewBox="0 0 1640 1040" focusable="false"><use href="#mk-l4"/></svg>04</span>
         <div><h3 class="m-name">Qiara</h3><p class="m-role">System Observability &amp; UX</p></div>
         <div class="m-mission-wrap">
           <p class="m-mission">&ldquo;Make the system understandable and actionable&rdquo;</p>
@@ -367,7 +450,7 @@
 
     <div class="hw-grid">
       <figure class="hw-main reveal">
-        <div class="shot"><img src="assets/img/pcb-3D-iso.webp" width="1400" height="905" loading="lazy" decoding="async" alt="Render 3D miring desain PCB: dudukan dua baterai 18650, modul pengisi daya USB-C, dua modul buck, ESP32 dengan modul radio, modul SIM800L merah, dan modul microSD biru di atas papan satu lapis."></div>
+        <a class="shot pcb zoom" href="assets/img/pcb-3D-iso-besar.webp" data-zoom data-zoom-w="1553" data-title="Render 3D miring PCB Pusat/Relay rev0.6"><img src="assets/img/pcb-3D-iso.webp" width="1100" height="747" loading="lazy" decoding="async" alt="Render 3D miring desain PCB: dudukan dua baterai 18650, modul pengisi daya USB-C, dua modul buck, ESP32 dengan modul radio, modul SIM800L merah, dan modul microSD biru di atas papan satu lapis."><span class="zoom-hint" aria-hidden="true"><svg><use href="#i-zoom"/></svg>Perbesar</span></a>
         <figcaption><strong>Render 3D desain PCB Pusat/Relay (rev0.6), belum diuji sebagai papan utuh.</strong> Ini visualisasi dari berkas desain, bukan foto fisik dan bukan CAD tervalidasi. Model 3D modul pada render hanyalah representasi visual.</figcaption>
         <div class="tag-row"><span class="chip warn">Render, bukan foto</span><span class="chip">rev0.6</span><span class="chip">single-layer · digiling CNC</span></div>
       </figure>
@@ -379,11 +462,11 @@
         <div><dt>PCB</dt><dd>Single-layer, digiling CNC</dd></div>
       </dl>
       <figure class="hw-a reveal">
-        <div class="shot"><img src="assets/img/pcb-3D-atas-berlabel.webp" width="1400" height="861" loading="lazy" decoding="async" alt="Render 3D tampak atas desain PCB dengan label nilai resistor, misalnya R9 4k7 dan R32 0R, serta penanda DNP pada komponen yang tidak dipasang."></div>
-        <figcaption><strong>Tampak atas berlabel (render 3D).</strong> Setiap resistor ditandai nilainya; DNP berarti tidak dipasang.</figcaption>
+        <a class="shot pcb zoom" href="assets/img/pcb-3D-atas-berlabel-besar.webp" data-zoom data-zoom-w="1682" data-title="Render 3D tampak atas PCB dengan label resistor"><img src="assets/img/pcb-3D-atas-berlabel.webp" width="1400" height="879" loading="lazy" decoding="async" alt="Render 3D tampak atas desain PCB dengan label nilai resistor, misalnya R9 4k7 dan R32 0R, serta penanda DNP pada komponen yang tidak dipasang."><span class="zoom-hint" aria-hidden="true"><svg><use href="#i-zoom"/></svg>Perbesar</span></a>
+        <figcaption><strong>Tampak atas berlabel (render 3D).</strong> Setiap resistor ditandai nilainya; DNP berarti tidak dipasang. Klik gambar untuk memperbesar.</figcaption>
       </figure>
-      <figure class="hw-b reveal" style="--d:.12s">
-        <div class="shot"><img src="assets/img/foto-poc.webp" width="1200" height="777" loading="lazy" decoding="async" alt="Foto prototipe di atas meja: dua papan ESP32 di breadboard, dua modul LoRa berantena, dua panel surya kecil, dan sebuah baterai 18650."></div>
+      <figure class="hw-b reveal">
+        <div class="shot poc"><img src="assets/img/foto-poc.webp" width="1200" height="777" loading="lazy" decoding="async" alt="Foto prototipe di atas meja: dua papan ESP32 di breadboard, dua modul LoRa berantena, dua panel surya kecil, dan sebuah baterai 18650."></div>
         <figcaption><strong>Foto prototipe pembuktian konsep (POC).</strong> Dua ESP32 di breadboard dengan modul LoRa berantena dan panel surya kecil. Perangkat uji awal, belum berupa PCB.</figcaption>
       </figure>
     </div>
@@ -391,9 +474,14 @@
 </section>
 
 <!-- Pemisah foto 2 -->
-<div class="band" data-parallax>
+<div class="band band-jalan" id="band-jalan" data-parallax>
   <img class="band-img" src="assets/img/jalan-malam-900.webp" srcset="assets/img/jalan-malam-900.webp 900w, assets/img/jalan-malam-2400.webp 2400w" sizes="100vw" width="2400" height="1706" loading="lazy" decoding="async" alt="Jalan sepi di malam hari dengan deretan lampu jalan menyala di antara pepohonan.">
-  <blockquote class="reveal">Deteksi dini anomali untuk mendukung pemeliharaan, bukan pengganti teknisi.<cite>Posisi AURORA</cite></blockquote>
+  <div class="band-inner">
+    <blockquote class="reveal">
+      <p class="q-id">Deteksi dini anomali untuk mendukung pemeliharaan, bukan pengganti teknisi.</p>
+      <cite>Posisi AURORA</cite>
+    </blockquote>
+  </div>
 </div>
 
 <!-- 6. DASHBOARD -->
@@ -414,11 +502,19 @@
       </dl>
       <div class="shots">
         <figure class="reveal">
-          <div class="shot"><img src="assets/img/dashboard-1-atas.webp" width="900" height="812" loading="lazy" decoding="async" alt="Tangkapan layar versi awal dashboard AURORA Fleet Monitoring: kartu ringkasan dan daftar alert dengan data simulasi."></div>
+          <a class="win zoom" href="assets/img/dashboard-1-atas.webp" data-zoom data-zoom-w="900" data-title="Tangkapan layar dashboard versi awal (data simulasi)">
+            <span class="win-bar" aria-hidden="true"><i></i><i></i><i></i><b>Fleet Monitoring · versi awal</b></span>
+            <img src="assets/img/dashboard-1-atas.webp" width="900" height="812" loading="lazy" decoding="async" alt="Tangkapan layar versi awal dashboard AURORA Fleet Monitoring: kartu ringkasan dan daftar alert dengan data simulasi.">
+            <span class="zoom-hint" aria-hidden="true"><svg><use href="#i-zoom"/></svg>Perbesar</span>
+          </a>
           <figcaption>Tangkapan layar versi awal dengan data simulasi, bukan dari tiang.</figcaption>
         </figure>
         <figure class="reveal" style="--d:.12s">
-          <div class="shot"><img src="assets/img/dashboard-2-lokasi.webp" width="900" height="610" loading="lazy" decoding="async" alt="Tangkapan layar dashboard: ringkasan dua lokasi, Jalan Kaliurang dan Jalan Persatuan, dengan jumlah node, anomali, dan rata-rata baterai, serta tab Fleet Overview, Detail Node, Trend, Event Log, Payload."></div>
+          <a class="win zoom" href="assets/img/dashboard-2-lokasi.webp" data-zoom data-zoom-w="900" data-title="Tangkapan layar dashboard, ringkasan per lokasi (data simulasi)">
+            <span class="win-bar" aria-hidden="true"><i></i><i></i><i></i><b>Ringkasan per lokasi · versi awal</b></span>
+            <img src="assets/img/dashboard-2-lokasi.webp" width="900" height="610" loading="lazy" decoding="async" alt="Tangkapan layar dashboard: ringkasan dua lokasi, Jalan Kaliurang dan Jalan Persatuan, dengan jumlah node, anomali, dan rata-rata baterai, serta tab Fleet Overview, Detail Node, Trend, Event Log, Payload.">
+            <span class="zoom-hint" aria-hidden="true"><svg><use href="#i-zoom"/></svg>Perbesar</span>
+          </a>
           <figcaption>Ringkasan per lokasi, data simulasi. Jumlah node dan nama jalan hanya contoh.</figcaption>
         </figure>
       </div>
@@ -434,14 +530,14 @@
       <figure class="reveal" style="--d:.1s">
         <svg class="flow-svg" viewBox="0 0 960 380" role="img" aria-label="Rancangan dua jalur data menuju satu database lalu dashboard. Online: sink, SIM, HTTPS, database. Offline: sink, microSD, USB, unggah ke database.">
           <defs>
-            <marker id="f-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#8ff0b8"/></marker>
-            <linearGradient id="f-db" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f8f6f"/><stop offset="1" stop-color="#0f6b5a"/></linearGradient>
+            <marker id="f-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#9af7cb"/></marker>
+            <linearGradient id="f-db" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1aa7c4"/><stop offset="1" stop-color="#0a5ca6"/></linearGradient>
           </defs>
           <g font-size="19" fill="#e8f3f0" text-anchor="middle">
-            <rect x="16" y="150" width="130" height="80" rx="14" fill="#08304d" stroke="#56c785" stroke-opacity=".6"/>
+            <rect x="16" y="150" width="130" height="80" rx="14" fill="#0a1f35" stroke="#4fe0b3" stroke-opacity=".6"/>
             <text x="81" y="186" font-weight="600">Sink</text><text x="81" y="210" font-size="14" fill="#a9c2c3">lokal</text>
 
-            <rect x="250" y="40" width="190" height="70" rx="14" fill="none" stroke="#8ff0b8" stroke-opacity=".5"/>
+            <rect x="250" y="40" width="190" height="70" rx="14" fill="none" stroke="#9af7cb" stroke-opacity=".5"/>
             <text x="345" y="70" font-weight="600">Online</text><text x="345" y="93" font-size="14" fill="#a9c2c3">SIM · HTTPS</text>
 
             <rect x="250" y="270" width="190" height="70" rx="14" fill="none" stroke="#7cc7ff" stroke-opacity=".5" stroke-dasharray="6 6"/>
@@ -450,10 +546,10 @@
             <rect x="540" y="140" width="170" height="100" rx="18" fill="url(#f-db)"/>
             <text x="625" y="182" font-weight="600" font-size="22">Database</text><text x="625" y="208" font-size="14" fill="#e3fff0">satu sumber kebenaran</text>
 
-            <rect x="800" y="150" width="148" height="80" rx="14" fill="#08304d" stroke="#56c785" stroke-opacity=".6"/>
+            <rect x="800" y="150" width="148" height="80" rx="14" fill="#0a1f35" stroke="#4fe0b3" stroke-opacity=".6"/>
             <text x="874" y="186" font-weight="600">Dashboard</text><text x="874" y="210" font-size="14" fill="#a9c2c3">operator</text>
           </g>
-          <g fill="none" stroke="#8ff0b8" stroke-width="2.4" stroke-linecap="round" marker-end="url(#f-arr)">
+          <g fill="none" stroke="#9af7cb" stroke-width="2.4" stroke-linecap="round" marker-end="url(#f-arr)">
             <path d="M146 175C190 175 200 75 246 75"/>
             <path d="M440 75C490 75 500 160 536 170"/>
             <path d="M146 205C190 205 200 305 246 305" stroke="#7cc7ff" stroke-dasharray="6 6"/>
@@ -486,10 +582,42 @@
   </div>
 </section>
 
-<!-- Pemisah foto 3 -->
-<div class="band" data-parallax>
-  <img class="band-img" src="assets/img/panel-surya-900.webp" srcset="assets/img/panel-surya-900.webp 900w, assets/img/panel-surya-2400.webp 2400w" sizes="100vw" width="2400" height="1800" loading="lazy" decoding="async" alt="Close-up permukaan panel surya berwarna biru gelap dengan butiran air kecil dan garis sambungan sel.">
-  <blockquote class="reveal">Bagian berikut memuat hasil yang tercatat beserta batasnya.<cite>Cara membaca bagian ini</cite></blockquote>
+<!-- Pemisah ilustrasi: aurora flat dan siluet tiang -->
+<div class="band band-aurora" id="band-aurora">
+  <svg class="band-art" viewBox="0 0 1600 560" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="s-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#03070d"/><stop offset=".6" stop-color="#07111d"/><stop offset="1" stop-color="#0a1f35"/></linearGradient>
+      <linearGradient id="s-r1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a5ca6" stop-opacity="0"/><stop offset=".55" stop-color="#1aa7c4" stop-opacity=".5"/><stop offset="1" stop-color="#2cc7a8" stop-opacity=".9"/></linearGradient>
+      <linearGradient id="s-r2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a5ca6" stop-opacity="0"/><stop offset=".6" stop-color="#2cc7a8" stop-opacity=".4"/><stop offset="1" stop-color="#9af7cb" stop-opacity=".85"/></linearGradient>
+      <pattern id="s-str" width="26" height="10" patternUnits="userSpaceOnUse"><rect width="2.5" height="10" fill="#dcfff0"/><rect x="13" width="1.5" height="10" fill="#dcfff0" opacity=".6"/></pattern>
+      <filter id="s-blur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="12"/></filter>
+      <radialGradient id="s-lamp"><stop offset="0" stop-color="#f2fffb" stop-opacity=".95"/><stop offset=".4" stop-color="#9af7cb" stop-opacity=".25"/><stop offset="1" stop-color="#9af7cb" stop-opacity="0"/></radialGradient>
+      <path id="s-pa" d="M-100 330C160 150 380 360 640 220S1060 60 1360 200 1560 220 1700 150V470C1400 380 1220 520 960 430S420 520 -100 460Z"/>
+      <path id="s-pb" d="M-100 400C240 270 460 450 760 330S1180 190 1700 300V500C1380 430 1160 540 880 480S360 540 -100 500Z"/>
+    </defs>
+    <rect width="1600" height="560" fill="url(#s-sky)"/>
+    <g fill="#eafff6"><circle cx="120" cy="60" r="1.6"/><circle cx="260" cy="130" r="1.2"/><circle cx="410" cy="40" r="1.4"/><circle cx="600" cy="100" r="1.1"/><circle cx="820" cy="38" r="1.6"/><circle cx="1010" cy="120" r="1.2"/><circle cx="1180" cy="52" r="1.5"/><circle cx="1350" cy="104" r="1.1"/><circle cx="1500" cy="40" r="1.4"/><circle cx="60" cy="190" r="1"/><circle cx="1560" cy="170" r="1"/></g>
+    <g filter="url(#s-blur)"><use href="#s-pa" fill="url(#s-r1)"/></g>
+    <use href="#s-pa" fill="url(#s-str)" opacity=".09"/>
+    <use href="#s-pb" fill="url(#s-r2)" opacity=".8"/>
+    <use href="#s-pb" fill="url(#s-str)" opacity=".1"/>
+    <path d="M0 470C240 430 460 462 720 448S1180 426 1400 456 1560 458 1600 448V560H0Z" fill="#03070d"/>
+    <g fill="#02050a">
+      <g transform="translate(250 372)"><rect x="-3" width="6" height="104"/><path d="M-3 6 40 -1v7L-3 16z"/></g>
+      <g transform="translate(560 366)"><rect x="-3" width="6" height="110"/><path d="M-3 6 40 -1v7L-3 16z"/></g>
+      <g transform="translate(1040 360)"><rect x="-3" width="6" height="116"/><path d="M-3 6 40 -1v7L-3 16z"/></g>
+      <g transform="translate(1350 370)"><rect x="-3" width="6" height="106"/><path d="M-3 6 40 -1v7L-3 16z"/></g>
+    </g>
+    <g><circle cx="290" cy="378" r="26" fill="url(#s-lamp)"/><circle cx="600" cy="372" r="26" fill="url(#s-lamp)"/><circle cx="1080" cy="366" r="26" fill="url(#s-lamp)"/><circle cx="1390" cy="376" r="26" fill="url(#s-lamp)"/></g>
+    <g fill="#f2fffb"><circle cx="289" cy="378" r="2.6"/><circle cx="599" cy="372" r="2.6"/><circle cx="1079" cy="366" r="2.6"/><circle cx="1389" cy="376" r="2.6"/></g>
+    <g fill="none" stroke="#9af7cb" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="3 8" opacity=".5"><path d="M290 372C380 320 470 320 600 366"/><path d="M600 366C760 300 940 300 1080 360"/><path d="M1080 360C1180 316 1290 316 1390 370"/></g>
+  </svg>
+  <div class="band-inner">
+    <blockquote class="reveal">
+      <p class="q-id">Bagian berikut memuat hasil yang tercatat beserta batasnya.</p>
+      <cite>Cara membaca bagian ini</cite>
+    </blockquote>
+  </div>
 </div>
 
 <!-- 7. BUKTI -->
@@ -570,7 +698,7 @@
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <div class="brand-big"><svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><use href="#logo-mark"/></svg><strong>AURORA</strong></div>
+        <div class="brand-big"><svg viewBox="0 0 1640 1040" aria-hidden="true" focusable="false"><use href="#logo-mark"/></svg><strong>AURORA</strong></div>
         <p>Monitoring PJU-TS pintar untuk daerah terpencil. Capstone A-06, DTETI 2026.</p>
       </div>
       <div>
@@ -590,8 +718,7 @@
         <ul>
           <li><b>Foto senja:</b> Kabiur Rahman Riyad (@riiyad), Unsplash</li>
           <li><b>Foto jalan malam:</b> Fawazlul Rizqi (@mrmrt113), Unsplash</li>
-          <li><b>Foto panel surya:</b> Benjamin Jopen (@benjopen), Unsplash</li>
-          <li>Foto di atas dipakai di bawah Unsplash License; telah dipotong dan dikonversi ke WebP.</li>
+          <li>Foto di atas dipakai di bawah Unsplash License; telah dipotong, dikoreksi kecerahannya, dan dikonversi ke WebP. Pemisah aurora di dekat bagian bukti adalah ilustrasi buatan sendiri.</li>
           <li><b>Font:</b> Geist dan Geist Mono, © The Geist Project Authors, di bawah SIL Open Font License 1.1.</li>
           <li><a class="lic" href="assets/fonts/OFL-Geist.txt">Baca lisensi font (OFL)</a></li>
         </ul>
