@@ -1,4 +1,13 @@
-# Photo credits
+# Photo and asset credits
+
+## Current additions (2026-10-31)
+
+- `assets/media-stock/pju-simalungun-1200.webp`: Sophia Guevara, [Lampu Jalan Tenaga Surya Pondok Buluh Simalungun](https://commons.wikimedia.org/wiki/File:Lampu_Jalan_Tenaga_Surya_Pondok_Buluh_Simalungun.jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Resized and converted to WebP; derivative shared under CC BY-SA 4.0. Not an AURORA trial location.
+- `assets/media-stock/lampu-malam-720.mp4` and poster: [Mixkit item 100417](https://mixkit.co/free-stock-video/nighttime-park-with-illuminated-streetlights-and-trees-100417/), [Stock Video Free License](https://mixkit.co/license/#videoFree). Re-encoded, audio removed, poster extracted. Illustrative park footage; solar power is not established and it is not an AURORA trial.
+- `assets/generated/aurora-night-hero-v2*`: AI-generated illustration based on the user's palette/style reference. [Prompt and provenance](../../docs/GENERATED-ASSETS.md).
+- `assets/renders-v2/`: native renders of the old PCB model. [Source and limitations](../../docs/3D-ASSET-REVIEW.md). Not device photography or fabrication validation.
+
+## Original assets retained
 
 All photos are free to use under the Unsplash License (https://unsplash.com/license). Retrieved 2026-10-17. Converted to WebP (cropped, EXIF stripped).
 
